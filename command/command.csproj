@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProjectGuid>{95017E2B-1594-4EF3-A7BA-551FCAFAC1B5}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>command</RootNamespace>
+    <AssemblyName>command</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Web" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="LitJson\IJsonWrapper.cs" />
+    <Compile Include="LitJson\JsonData.cs" />
+    <Compile Include="LitJson\JsonException.cs" />
+    <Compile Include="LitJson\JsonMapper.cs" />
+    <Compile Include="LitJson\JsonMockWrapper.cs" />
+    <Compile Include="LitJson\JsonReader.cs" />
+    <Compile Include="LitJson\JsonWriter.cs" />
+    <Compile Include="LitJson\Lexer.cs" />
+    <Compile Include="LitJson\ParserToken.cs" />
+    <Compile Include="Coinone\Api.cs" />
+    <Compile Include="Coinone\Key.cs" />
+    <Compile Include="Bitfinex\Api.cs" />
+    <Compile Include="Utility.cs" />
+    <Compile Include="Bitfinex\Key.cs" />
+    <Compile Include="Bitflyer\Api.cs" />
+    <Compile Include="Bitflyer\Key.cs" />
+    <Compile Include="Bitflyer\Limit.cs" />
+    <Compile Include="Bitfinex\Limit.cs" />
+    <Compile Include="Coinone\Limit.cs" />
+    <Compile Include="FSM\StateMachine.cs" />
+    <Compile Include="FSM\State.cs" />
+    <Compile Include="Brain\MainLogic.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="LitJson\" />
+    <Folder Include="Coinone\" />
+    <Folder Include="Bitfinex\" />
+    <Folder Include="Bitflyer\" />
+    <Folder Include="FSM\" />
+    <Folder Include="Brain\" />
+  </ItemGroup>
+</Project>
