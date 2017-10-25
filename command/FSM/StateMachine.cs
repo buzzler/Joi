@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Joi.FSM
 {
-	public class StateMachine
+	public class StateMachine : IDisposable
 	{
 		private	bool _enable;
 		private	bool _log;
@@ -13,8 +13,20 @@ namespace Joi.FSM
 		private	State _current;
 		private	Dictionary<string, State> _states;
 
+		/// <summary>
+		/// Gets a value indicating whether this <see cref="Joi.FSM.StateMachine"/> is enable.
+		/// </summary>
+		/// <value><c>true</c> if enable; otherwise, <c>false</c>.</value>
 		public	bool enable { get { return _enable; } }
+		/// <summary>
+		/// Gets a value indicating whether this <see cref="Joi.FSM.StateMachine"/> is logging.
+		/// </summary>
+		/// <value><c>true</c> if logging; otherwise, <c>false</c>.</value>
 		public	bool logging { get { return _log; } }
+		/// <summary>
+		/// Gets the name.
+		/// </summary>
+		/// <value>The name.</value>
 		public	string name { get { return _name; } }
 		/// <summary>
 		/// Gets the first state.
@@ -146,6 +158,22 @@ namespace Joi.FSM
 			_current = null;
 			_enable = false;
 			return this;
+		}
+
+		/// <summary>
+		/// Releases all resource used by the <see cref="Joi.FSM.StateMachine"/> object.
+		/// </summary>
+		/// <remarks>Call <see cref="Dispose"/> when you are finished using the <see cref="Joi.FSM.StateMachine"/>. The
+		/// <see cref="Dispose"/> method leaves the <see cref="Joi.FSM.StateMachine"/> in an unusable state. After calling
+		/// <see cref="Dispose"/>, you must release all references to the <see cref="Joi.FSM.StateMachine"/> so the garbage
+		/// collector can reclaim the memory that the <see cref="Joi.FSM.StateMachine"/> was occupying.</remarks>
+		public void Dispose()
+		{
+			End ();
+			_first = null;
+			_prev = null;
+			_current = null;
+			_states = null;
 		}
 	}
 }

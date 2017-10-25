@@ -7,10 +7,11 @@ namespace Joi
 	{
 		public static void Main (string[] args)
 		{
-			var ruvu = new MainLogic ();
-			while (ruvu != null) {
-				ruvu.Loop ();
-				System.Threading.Thread.Sleep(1000);
+			using (var ruvu = new MainLogic ()) {
+				while (ruvu != null) {
+					ruvu.Loop ();
+					System.Threading.Thread.Sleep (1000);
+				}
 			}
 		}
 	}
