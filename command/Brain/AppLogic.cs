@@ -1,15 +1,17 @@
 ﻿using System;
+using System.Threading;
 using Joi.FSM;
 
 namespace Joi.Brain
 {
-	public	class MainLogic : StateMachine
+	public	class AppLogic : StateMachine
 	{
 		private	const string STATE_INITIALIZING	= "Initializing";
 		private	const string STATE_STOPPED		= "Stopped";
 		private	const string STATE_RUNNING		= "Running";
 		private	const string STATE_BLOCKED		= "Blocked";
 		private	const string STATE_DISCONNECTED	= "Disconnected";
+
 		private const string TRIGGER_COMPLETE	= "complete";
 		private	const string TRIGGER_BLOCK		= "block";
 		private	const string TRIGGER_UNBLOCK	= "unblock";
@@ -18,7 +20,7 @@ namespace Joi.Brain
 		private	const string TRIGGER_START		= "start";
 		private	const string TRIGGER_STOP		= "stop";
 
-		public	MainLogic(bool logging = true) : base("MainLogic", logging)
+		public	AppLogic(bool logging = true) : base("AppLogic", 1000, logging)
 		{
 			this.SetFirstState (STATE_INITIALIZING)
 				.SetupEntry (OnEntryInit)
@@ -52,7 +54,7 @@ namespace Joi.Brain
 			Start ();
 		}
 
-		~MainLogic()
+		~AppLogic()
 		{
 			End ();
 		}

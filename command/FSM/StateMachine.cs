@@ -7,6 +7,7 @@ namespace Joi.FSM
 	{
 		private	bool _enable;
 		private	bool _log;
+		private	int _timeout;
 		private	string _name;
 		private State _first;
 		private	State _prev;
@@ -47,10 +48,11 @@ namespace Joi.FSM
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Joi.FSM.StateMachine"/> class.
 		/// </summary>
-		public StateMachine (string name = "", bool logging = true)
+		public StateMachine (string name = "", int timeout = -1, bool logging = true)
 		{
 			_enable = false;
 			_log = logging;
+			_timeout = timeout;
 			_name = name;
 			_first = null;
 			_prev = null;
@@ -105,37 +107,51 @@ namespace Joi.FSM
 		/// <summary>
 		/// Start this instance.
 		/// </summary>
-		public	StateMachine Start()
+		public	void Start()
 		{
 			if (_first != null) {
 				_current = _first;
 				_current.FireOnEntry ();
 			}
 			_enable = true;
-			return this;
+		}
+
+		public	void Run()
+		{
+			while (_enable) {
+				Loop ();
+				Sleep ();
+			}
+		}
+
+		public	void Sleep(int time = -1)
+		{
+			if (time > 0)
+				System.Threading.Thread.Sleep (time);
+			else if (_timeout > 0)
+				System.Threading.Thread.Sleep (_timeout);
 		}
 
 		/// <summary>
 		/// Loop this instance.
 		/// </summary>
-		public	StateMachine Loop()
+		public	void Loop()
 		{
 			if (_current != null && _enable) {
 				_current.FireOnLoop ();
 			}
-			return this;
 		}
 
 		/// <summary>
 		/// Fire the specified triggerName.
 		/// </summary>
 		/// <param name="triggerName">Trigger name.</param>
-		public	StateMachine Fire(string triggerName)
+		public	void Fire(string triggerName)
 		{
 			if (_current == null)
-				return this;
+				return;
 			if (!_current.HasTrigger (triggerName))
-				return this;
+				return;
 
 			State nextState = GetState (_current.GetConnectedState (triggerName));
 			if (nextState != null) {
@@ -144,20 +160,18 @@ namespace Joi.FSM
 				_current = nextState;
 				_current.FireOnEntry ();
 			}
-			return this;
 		}
 
 		/// <summary>
 		/// End this instance.
 		/// </summary>
-		public	StateMachine End()
+		public	void End()
 		{
 			if (_current != null)
 				_current.FireOnExit ();
 			_prev = _current;
 			_current = null;
 			_enable = false;
-			return this;
 		}
 
 		/// <summary>

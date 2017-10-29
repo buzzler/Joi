@@ -30,14 +30,14 @@ namespace Joi.Bitfinex
 			return _GetCommonResponse (string.Format("book/{0}?limit_bids={1}&limit_asks={2}&group={2}", symbol, limit_bids, limit_asks, group));
 		}
 
-		public	JsonData GetTrades(string symbol, int limit_trades = 50)
+		public	JsonData GetTrades(string symbol, int timestamp)
 		{
-			return _GetCommonResponse (string.Format ("trades/{0}?limit_trades={1}", symbol, limit_trades));
+			return _GetCommonResponse (string.Format ("trades/{0}?timestamp={1}", symbol, timestamp));
 		}
 
-		public	JsonData GetTrades(string symbol, DateTime timestamp, int limit_trades = 50)
+		public	JsonData GetTrades(string symbol, int timestamp, int limit_trades)
 		{
-			return _GetCommonResponse (string.Format ("trades/{0}?limit_trades={1}&timestamp={2}", symbol, limit_trades, Utility.Timestamp (timestamp)));
+			return _GetCommonResponse (string.Format ("trades/{0}?limit_trades={1}&timestamp={2}", symbol, limit_trades, timestamp));
 		}
 
 		public	JsonData GetLends(string currency, int limit_lends = 50)
@@ -45,9 +45,9 @@ namespace Joi.Bitfinex
 			return _GetCommonResponse (string.Format ("lends/{0}?limit_lends={1}", currency, limit_lends));
 		}
 
-		public	JsonData GetLends(string currency, DateTime timestamp, int limit_lends = 50)
+		public	JsonData GetLends(string currency, int timestamp, int limit_lends = 50)
 		{
-			return _GetCommonResponse (string.Format ("lends/{0}?limit_lends={1}&timestamp={2}", currency, limit_lends, Utility.Timestamp (timestamp)));
+			return _GetCommonResponse (string.Format ("lends/{0}?limit_lends={1}&timestamp={2}", currency, limit_lends, timestamp));
 		}
 
 		public	JsonData GetSymbols()

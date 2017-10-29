@@ -31,12 +31,28 @@ namespace Joi.Bitflyer
 				return _GetCommonResponse (string.Format ("getticker?product_code={0}", product_code));
 		}
 
-		public	JsonData GetExecutionHistory(int count = 100, string product_code = null)
+		public	JsonData GetExecutionHistory(string product_code = null, int count = -1, int before = -1, int after = -1)
 		{
-			if (string.IsNullOrEmpty (product_code))
-				return _GetCommonResponse (string.Format("getexecutions?count={0}", count));
-			else
-				return _GetCommonResponse (string.Format ("getexecutions?count={0}&product_code={1}", count, product_code));
+			var sb = new System.Text.StringBuilder ();
+			if (product_code != null) {
+				sb.AppendFormat ("product_code={0}", product_code);
+			}
+			if (count > 0) {
+				if (sb.Length > 0)
+					sb.Append ("&");
+				sb.AppendFormat ("count={0}", count);
+			}
+			if (before > 0) {
+				if (sb.Length > 0)
+					sb.Append ("&");
+				sb.AppendFormat ("before={0}", before);
+			}
+			if (after > 0) {
+				if (sb.Length > 0)
+					sb.Append ("&");
+				sb.AppendFormat ("after={0}", after);
+			}
+			return _GetCommonResponse (string.Format ("getexecutions?{0}", sb.ToString ()));
 		}
 
 		public	JsonData GetExchangeStatus(string product_code = null)

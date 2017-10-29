@@ -1,9 +1,16 @@
-﻿<Properties StartupItem="command/command.csproj">
+﻿<Properties StartupItem="command/command.csproj" RefactoringSettings.EnableRefactorings="True">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.Workbench ActiveDocument="command/Program.cs">
     <Files>
-      <File FileName="command/Program.cs" Line="20" Column="1" />
-      <File FileName="command/Brain/MainLogic.cs" Line="15" Column="22" />
+      <File FileName="command/Program.cs" Line="17" Column="47" />
+      <File FileName="command/Data/Trade.cs" Line="60" Column="91" />
+      <File FileName="command/Brain/CrawlerCoinone.cs" Line="51" Column="42" />
+      <File FileName="command/Brain/CrawlerBitfinex.cs" Line="71" Column="1" />
+      <File FileName="command/LitJson/JsonData.cs" Line="253" Column="1" />
+      <File FileName="command/Utility.cs" Line="17" Column="4" />
+      <File FileName="command/Brain/CrawlerBitflyer.cs" Line="88" Column="58" />
+      <File FileName="command/Bitflyer/Api.cs" Line="55" Column="84" />
+      <File FileName="command/Data/Market.cs" Line="68" Column="23" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

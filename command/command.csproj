@@ -57,7 +57,15 @@
     <Compile Include="Coinone\Limit.cs" />
     <Compile Include="FSM\StateMachine.cs" />
     <Compile Include="FSM\State.cs" />
-    <Compile Include="Brain\MainLogic.cs" />
+    <Compile Include="Brain\TradeLogic.cs" />
+    <Compile Include="Brain\AppLogic.cs" />
+    <Compile Include="Brain\CrawlerLogic.cs" />
+    <Compile Include="Brain\CrawlerCoinone.cs" />
+    <Compile Include="Brain\CrawlerBitfinex.cs" />
+    <Compile Include="Brain\CrawlerBitflyer.cs" />
+    <Compile Include="Data\Trade.cs" />
+    <Compile Include="Data\Market.cs" />
+    <Compile Include="Data\Symbol.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -67,5 +75,6 @@
     <Folder Include="Bitflyer\" />
     <Folder Include="FSM\" />
     <Folder Include="Brain\" />
+    <Folder Include="Data\" />
   </ItemGroup>
 </Project>

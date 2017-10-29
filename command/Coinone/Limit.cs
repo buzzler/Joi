@@ -4,8 +4,8 @@ namespace Joi.Coinone
 {
 	public class Limit
 	{
-		public	const int QUERY_PER_MINUTE = 90;	// for public API
-		public	const int ORDER_PER_MINUTE = 360;	// for private API
+		public	const int QUERY_TIMEOUT = 670;		// 90 queries per a minute
+		public	const int ORDER_TIMEOUT = 170;		// 360 orders per a minute
 	}
 }
 
