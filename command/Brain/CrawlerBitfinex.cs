@@ -41,12 +41,16 @@ namespace Joi.Brain
 
 		protected override void OnEntryGather ()
 		{
+			// for WebSocket
 			_api.Connect (OnSocketError);
 			_api.SubscribeTrade (_symbol, OnSubscribedTrade);
+			_api.SubscribeOrderBook (_symbol, OnSubscribeOrderBook);
+			_api.SubscribeTicker (_symbol, OnSubscribeTicker);
 		}
 
 		protected override void OnLoopGather ()
 		{
+			// for RestAPI
 //			GetTrade (_market.GetLastTimestamp ());
 //			var json2 = _api.GetOrderBook ("btcusd");
 //			var json3 = _api.GetTicker ("btcusd");
@@ -55,6 +59,8 @@ namespace Joi.Brain
 		protected override void OnExitGather ()
 		{
 			_api.UnsubscribeTrade ();
+			_api.UnsubscribeTicker ();
+			_api.UnsubscribeOrderBook ();
 			_api.Disconnect ();
 		}
 
@@ -102,16 +108,16 @@ namespace Joi.Brain
 		private	void OnSubscribedTrade(JsonData json)
 		{
 			var len = json.Count;
-			if (len < 6)
+			if (len < 4)
 				return;
 
 			var jsonId = json[len-4];
 			var valueId = jsonId.ToString().Trim();
 			int id = -1;
 			if (jsonId.IsInt)
-				id = int.Parse(valueId);
+				id = int.Parse (valueId);
 			else if (jsonId.IsString)
-				id = int.Parse(valueId.Split("-"[0])[0]);
+				return;
 			if (id < 0)
 				return;
 
@@ -123,6 +129,16 @@ namespace Joi.Brain
 				int.Parse(json[len-3].ToString())
 			);
 			_market.EndUpdate ();
+		}
+
+		private	void OnSubscribeOrderBook(JsonData json)
+		{
+//			Console.WriteLine ("order: {0}", json.ToJson ());
+		}
+
+		private	void OnSubscribeTicker(JsonData json)
+		{
+//			Console.WriteLine ("ticker: {0}", json.ToJson ());
 		}
 	}
 }

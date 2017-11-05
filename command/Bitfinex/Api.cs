@@ -7,6 +7,12 @@ namespace Joi.Bitfinex
 {
 	public class Api
 	{
+		public	Api()
+		{
+		}
+
+		#region web-socket
+
 		private WebSocket _socket;
 		private	int _channelTrade;
 		private	int _channelOrderBook;
@@ -16,16 +22,11 @@ namespace Joi.Bitfinex
 		private	Action<JsonData> _onOrderBook;
 		private	Action<JsonData> _onTicker;
 
-		public	Api()
-		{
-			_socket = new WebSocket (Key.SOCKET);
-		}
-
 		public	void Connect(Action<string> onError)
 		{
-			if (!_socket.IsAlive) {
+			if (_socket == null) {
 				_onError = onError;
-//				_socket.OnMessage += OnOpened;
+				_socket = new WebSocket (Key.SOCKET);
 				_socket.OnMessage += OnMessage;
 				_socket.OnError += OnError;
 				_socket.Connect ();
@@ -40,7 +41,6 @@ namespace Joi.Bitfinex
 				json ["channel"] = "trades";
 				json ["symbol"] = symbol;
 				_onTrade = onMessage;
-//				_socket.OnMessage += OnTradeSubscribe;
 				_socket.Send (json.ToJson ());
 			}
 		}
@@ -52,7 +52,6 @@ namespace Joi.Bitfinex
 				json ["event"] = "unsubscribe";
 				json ["chanId"] = _channelTrade;
 				_onTrade = null;
-//				_socket.OnMessage -= OnTradeMessage;
 				_socket.Send (json.ToJson ());
 			}
 		}
@@ -82,15 +81,43 @@ namespace Joi.Bitfinex
 			}
 		}
 
-		public	void Disconnect()
+		public	void SubscribeTicker(string symbol, Action<JsonData> onMessage)
 		{
 			if (_socket.IsAlive) {
+				var json = new JsonData ();
+				json ["event"] = "subscribe";
+				json ["channel"] = "ticker";
+				json ["symbol"] = symbol;
+				_onTicker = onMessage;
+				_socket.Send (json.ToJson ());
+			}
+		}
+
+		public	void UnsubscribeTicker()
+		{
+			if (_socket.IsAlive && _channelTicker > 0) {
+				var json = new JsonData ();
+				json ["event"] = "unsubscribe";
+				json ["chanId"] = _channelTicker;
+				_onTicker = null;
+				_socket.Send (json.ToJson ());
+			}
+		}
+
+		public	void Disconnect()
+		{
+			if (_socket != null && _socket.IsAlive) {
 				_onError = null;
 				_socket.OnError -= OnError;
 				_socket.OnMessage -= OnMessage;
 				_socket.Close ();
+				_socket = null;
 			}
 		}
+
+		#endregion
+
+		#region Rest API
 
 		public	JsonData GetTicker(string symbol)
 		{
@@ -149,78 +176,46 @@ namespace Joi.Bitfinex
 			return Utility.GetResponse (request);
 		}
 
-		private	void OnOpened (object sender, MessageEventArgs e)
-		{
-			var json = JsonMapper.ToObject (e.Data);
-			string response = json ["event"].ToString ();
-			if (response != "info") {
-				Console.Error.WriteLine (json.ToJson ());
-			}
-			_socket.OnMessage -= OnOpened;
-		}
+		#endregion
 
-		private	void OnTradeSubscribe(object sender, MessageEventArgs e)
-		{
-			var json = JsonMapper.ToObject (e.Data);
-			string response = json ["event"].ToString ();
-			if (response == "subscribed") {
-				_channelTrade = int.Parse (json ["chanId"].ToString ());
-				_socket.OnMessage += OnTradeMessage;
-			} else if (response == "error") {
-				Console.Error.WriteLine ("error({0}): {1}", json ["code"].ToString (), json ["msg"].ToString ());
-			}
-			_socket.OnMessage -= OnTradeSubscribe;
-		}
-
-		private	void OnTradeMessage (object sender, MessageEventArgs e)
-		{
-			if (_onTrade == null)
-				return;
-			var json = JsonMapper.ToObject (e.Data);
-			var len = json.Count;
-			var chanId = int.Parse (json [0].ToString ());
-			if (chanId == _channelTrade) {
-				if (len == 2 && json [1].IsArray) {
-					var trades = json [1];
-					for (int i = 0; i < trades.Count; i++) {
-						_onTrade (trades [i]);
-					}
-				} else if (len == 6) {
-					_onTrade (json);
-				}
-			}
-		}
+		#region web-socket event handler
 
 		private	void OnMessage (object sender, MessageEventArgs e)
 		{
 			var json = JsonMapper.ToObject (e.Data);
 			if (json.IsArray) {
-				if (json.Count == 0)
+				var count = json.Count;
+				if (count == 0)
 					return;
 
+				Action<JsonData> onCallback = null;
 				var chanId = int.Parse (json [0].ToString ());
-				switch (chanId) {
-				case _channelOrderBook:
-					if (_onOrderBook != null)
-						_onOrderBook (json);
-					break;
-				case _channelTicker:
-					if (_onTicker != null)
-						_onTicker (json);
-					break;
-				case _channelTrade:
-					if (_onTrade != null)
-						_onTrade (json);
-					break;
+				if (chanId == _channelOrderBook && _onOrderBook != null)
+					onCallback = _onOrderBook;
+				else if (chanId == _channelTicker && _onTicker != null)
+					onCallback = _onTicker;
+				else if (chanId == _channelTrade && _onTrade != null)
+					onCallback = _onTrade;
+				else
+					return;
+
+				if (count == 2 && json [1].IsArray) {
+					var ary = json [1];
+					for (int i = 0; i < ary.Count; i++)
+						onCallback (ary [i]);
+				} else {
+					onCallback (json);
 				}
 			} else if (json.IsObject) {
 				var responce = json ["event"].ToString ();
-				var protocol = json ["channel"].ToString ();
-				var chanId = int.Parse (json ["chanId"].ToString ());
-
-				if (responce != "subscribed")
+				if (responce == "info") {
+					Console.WriteLine ("version: {0}", json ["version"].ToString ());
+					return;
+				} else if (responce != "subscribed")
 					return;
 
+				var protocol = json ["channel"].ToString ();
+				var chanId = int.Parse (json ["chanId"].ToString ());
 				switch (protocol) {
 				case "book":
 					_channelOrderBook = chanId;
@@ -240,6 +235,8 @@ namespace Joi.Bitfinex
 			if (_onError != null)
 				_onError (e.Message);
 		}
+
+		#endregion
 	}
 }
 
