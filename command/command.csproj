@@ -32,6 +32,12 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Web" />
+    <Reference Include="websocket-sharp">
+      <HintPath>WebSocket\websocket-sharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>WebSocket\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -76,5 +82,10 @@
     <Folder Include="FSM\" />
     <Folder Include="Brain\" />
     <Folder Include="Data\" />
+    <Folder Include="WebSocket\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="WebSocket\Newtonsoft.Json.dll" />
+    <None Include="WebSocket\websocket-sharp.dll" />
   </ItemGroup>
 </Project>

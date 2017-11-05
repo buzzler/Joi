@@ -51,7 +51,6 @@ namespace Joi.Data
 				_ids.AddRange (_stashId);
 				_stashTrade.Clear ();
 				_stashId.Clear ();
-				Console.WriteLine ("{0}: {1} info added", name, count);
 			}
 			return count;
 		}

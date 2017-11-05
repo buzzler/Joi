@@ -32,7 +32,7 @@ namespace Joi.Brain
 
 		protected override void OnLoopInit ()
 		{
-			GetTrade ();
+			GetTrade (10000);
 			Fire (TRIGGER_COMPLETE);
 		}
 
@@ -46,7 +46,7 @@ namespace Joi.Brain
 
 		protected override void OnLoopGather ()
 		{
-			GetTrade (_market.GetLastId ());
+			GetTrade (-1, _market.GetLastId ());
 //			var json2 = _api.GetOrderBook ();
 //			var json3 = _api.GetTicker ();
 		}
@@ -67,9 +67,9 @@ namespace Joi.Brain
 		{
 		}
 
-		private	void GetTrade(int id = -1)
+		private	void GetTrade(int count = -1, int after = -1)
 		{
-			var trades = _api.GetExecutionHistory (_productCode, -1, -1, id);
+			var trades = _api.GetExecutionHistory (_productCode, count, -1, after);
 			if (trades == null) {
 				Fire (TRIGGER_STOP);
 				return;
@@ -78,8 +78,8 @@ namespace Joi.Brain
 				return;
 
 			_market.BegineUpdate ();
-			var count = trades.Count;
-			for (int i = 0; i < count; i++) {
+			var total = trades.Count;
+			for (int i = 0; i < total; i++) {
 				var trade = trades [i];
 				_market.UpdateTrade (
 					int.Parse (trade ["id"].ToString ()),

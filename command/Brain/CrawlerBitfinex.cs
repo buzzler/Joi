@@ -2,6 +2,7 @@
 using Joi.Bitfinex;
 using LitJson;
 using Joi.Data;
+using WebSocketSharp;
 
 namespace Joi.Brain
 {
@@ -11,11 +12,10 @@ namespace Joi.Brain
 		private	Market _market;
 		private	string _symbol;
 
-		public	CrawlerBitfinex(Symbol symbol, bool logging = true) : base ("Bitfinex", Joi.Bitfinex.Limit.TRADES_TIMEOUT, logging)
+		public	CrawlerBitfinex(Symbol symbol, bool logging = true) : base ("Bitfinex", Joi.Bitfinex.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
 			_market = new Market (name);
-
 			switch (symbol) {
 			case Symbol.BITCOIN:
 				_symbol = "btcusd";
@@ -32,8 +32,6 @@ namespace Joi.Brain
 
 		protected override void OnLoopInit ()
 		{
-			var yesterday = Utility.Timestamp (DateTime.Now.AddDays(1));
-			GetTrade (yesterday);
 			Fire (TRIGGER_COMPLETE);
 		}
 
@@ -43,17 +41,21 @@ namespace Joi.Brain
 
 		protected override void OnEntryGather ()
 		{
+			_api.Connect (OnSocketError);
+			_api.SubscribeTrade (_symbol, OnSubscribedTrade);
 		}
 
 		protected override void OnLoopGather ()
 		{
-			GetTrade (_market.GetLastTimestamp ());
+//			GetTrade (_market.GetLastTimestamp ());
 //			var json2 = _api.GetOrderBook ("btcusd");
 //			var json3 = _api.GetTicker ("btcusd");
 		}
 
 		protected override void OnExitGather ()
 		{
+			_api.UnsubscribeTrade ();
+			_api.Disconnect ();
 		}
 
 		protected override void OnEntryStop ()
@@ -68,7 +70,7 @@ namespace Joi.Brain
 		{
 		}
 
-		private	void GetTrade(int timestamp)
+		private	void GetTradeByWeb(int timestamp)
 		{
 			var trades = _api.GetTrades (_symbol, timestamp);
 			if (trades == null) {
@@ -89,6 +91,37 @@ namespace Joi.Brain
 					int.Parse (trade ["timestamp"].ToString ())
 				);
 			}
+			_market.EndUpdate ();
+		}
+
+		private	void OnSocketError(string message)
+		{
+			Fire (TRIGGER_STOP);
+		}
+
+		private	void OnSubscribedTrade(JsonData json)
+		{
+			var len = json.Count;
+			if (len < 6)
+				return;
+
+			var jsonId = json[len-4];
+			var valueId = jsonId.ToString().Trim();
+			int id = -1;
+			if (jsonId.IsInt)
+				id = int.Parse(valueId);
+			else if (jsonId.IsString)
+				id = int.Parse(valueId.Split("-"[0])[0]);
+			if (id < 0)
+				return;
+
+			_market.BegineUpdate ();
+			_market.UpdateTrade(
+				id,
+				float.Parse(json[len-2].ToString()),
+				float.Parse(json[len-1].ToString()),
+				int.Parse(json[len-3].ToString())
+			);
 			_market.EndUpdate ();
 		}
 	}

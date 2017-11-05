@@ -3,3 +3,5 @@
 /Users/buzzler/Projects/Joi/command/bin/Debug/command.exe
 /Users/buzzler/Projects/Joi/command/obj/x86/Debug/command.exe
 /Users/buzzler/Projects/Joi/command/obj/x86/Debug/command.exe.mdb
+/Users/buzzler/Projects/Joi/command/bin/Debug/websocket-sharp.dll
+/Users/buzzler/Projects/Joi/command/bin/Debug/Newtonsoft.Json.dll

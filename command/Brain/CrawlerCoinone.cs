@@ -86,7 +86,7 @@ namespace Joi.Brain
 			for (int i = 0; i < count; i++) {
 				var trade = trades [i];
 				_market.UpdateTrade (
-					int.Parse (trade ["timestamp"].ToString ()),
+					int.Parse(trade ["timestamp"].ToString ()),
 					double.Parse (trade ["price"].ToString ()),
 					double.Parse (trade ["qty"].ToString ()),
 					int.Parse (trade ["timestamp"].ToString ())
