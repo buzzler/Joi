@@ -1,0 +1,7 @@
+/Users/buzzler/Projects/Joi/command/obj/x86/Release/.NETFramework,Version=v4.5.AssemblyAttribute.cs
+/Users/buzzler/Projects/Joi/command/bin/Release/command.exe.mdb
+/Users/buzzler/Projects/Joi/command/bin/Release/command.exe
+/Users/buzzler/Projects/Joi/command/obj/x86/Release/command.exe
+/Users/buzzler/Projects/Joi/command/obj/x86/Release/command.exe.mdb
+/Users/buzzler/Projects/Joi/command/bin/Release/websocket-sharp.dll
+/Users/buzzler/Projects/Joi/command/bin/Release/Newtonsoft.Json.dll

@@ -10,11 +10,15 @@ namespace Joi.Brain
 		private	Api _api;
 		private	Market _market;
 		private	string _currency;
+		private	float _ratio;
+		private	float _count;
 
 		public CrawlerCoinone (Symbol symbol, bool logging = true) : base("Coinone", Joi.Coinone.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
 			_market = new Market (name);
+			_ratio = 4;
+			_count = 0;
 
 			// convert symbol
 			switch (symbol) {
@@ -33,7 +37,9 @@ namespace Joi.Brain
 
 		protected override void OnLoopInit ()
 		{
-			GetTradeDay ("day");
+			GetTrade ("day");
+			System.Threading.Thread.Sleep (Limit.QUERY_TIMEOUT);
+			GetTicker ();
 			Fire (TRIGGER_COMPLETE);
 		}
 
@@ -47,9 +53,12 @@ namespace Joi.Brain
 
 		protected override void OnLoopGather ()
 		{
-			GetTradeDay ();
+			_count = (_count + 1) % _ratio;
+			if (_count < 1)
+				GetTicker ();
+			else
+				GetTrade ();
 //			var json = _api.GetOrderbook ("btc");
-//			var json = _api.GetTicker ("btc");
 		}
 
 		protected override void OnExitGather ()
@@ -68,7 +77,7 @@ namespace Joi.Brain
 		{
 		}
 
-		private	void GetTradeDay(string period = "hour")
+		private	void GetTrade(string period = "hour")
 		{
 			var json = _api.GetCompleteOrders (_currency, period);
 			if (json == null) {
@@ -81,18 +90,33 @@ namespace Joi.Brain
 			if (!trades.IsArray)
 				return;
 
-			_market.BegineUpdate ();
 			var count = trades.Count;
 			for (int i = 0; i < count; i++) {
 				var trade = trades [i];
-				_market.UpdateTrade (
+				_market.AddNewTrade (
 					int.Parse(trade ["timestamp"].ToString ()),
 					double.Parse (trade ["price"].ToString ()),
 					double.Parse (trade ["qty"].ToString ()),
 					int.Parse (trade ["timestamp"].ToString ())
 				);
 			}
-			_market.EndUpdate ();
+		}
+
+		private	void GetTicker()
+		{
+			try {
+				var json = _api.GetTicker (_currency);
+				_market.UpdateTicker (
+					float.Parse (json ["high"].ToString ()),
+					0f,
+					float.Parse (json ["low"].ToString ()),
+					0f,
+					float.Parse (json ["volume"].ToString ())
+				);
+			} catch (Exception e) {
+				Console.Error.WriteLine (e.Message);
+				Fire (TRIGGER_STOP);
+			}
 		}
 	}
 }

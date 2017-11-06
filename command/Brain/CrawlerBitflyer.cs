@@ -10,11 +10,15 @@ namespace Joi.Brain
 		private	Api _api;
 		private	Market _market;
 		private	string _productCode;
+		private	float _ratio;
+		private	float _count;
 
 		public CrawlerBitflyer (Symbol symbol, bool logging = true) : base ("Bitflyer", Joi.Bitflyer.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
 			_market = new Market (name);
+			_ratio = 4;
+			_count = 0;
 
 			switch (symbol) {
 			case Symbol.BITCOIN:
@@ -33,6 +37,8 @@ namespace Joi.Brain
 		protected override void OnLoopInit ()
 		{
 			GetTrade (10000);
+			System.Threading.Thread.Sleep (Limit.QUERY_TIMEOUT);
+			GetTicker ();
 			Fire (TRIGGER_COMPLETE);
 		}
 
@@ -46,9 +52,12 @@ namespace Joi.Brain
 
 		protected override void OnLoopGather ()
 		{
-			GetTrade (-1, _market.GetLastId ());
+			_count = (_count + 1) % _ratio;
+			if (_count < 1)
+				GetTicker ();
+			else
+				GetTrade (-1, _market.GetLastId ());
 //			var json2 = _api.GetOrderBook ();
-//			var json3 = _api.GetTicker ();
 		}
 
 		protected override void OnExitGather ()
@@ -77,18 +86,33 @@ namespace Joi.Brain
 			if (!trades.IsArray)
 				return;
 
-			_market.BegineUpdate ();
 			var total = trades.Count;
 			for (int i = 0; i < total; i++) {
 				var trade = trades [i];
-				_market.UpdateTrade (
+				_market.AddNewTrade (
 					int.Parse (trade ["id"].ToString ()),
 					double.Parse (trade ["price"].ToString ()),
 					double.Parse (trade ["size"].ToString ()),
 					Utility.Timestamp (DateTime.Parse (trade ["exec_date"].ToString ()))
 				);
 			}
-			_market.EndUpdate ();
+		}
+
+		private	void GetTicker()
+		{
+			try {
+				var ticker = _api.GetTicker (_productCode);
+				_market.UpdateTicker (
+					float.Parse (ticker ["best_bid"].ToString ()),
+					float.Parse (ticker ["best_bid_size"].ToString ()),
+					float.Parse (ticker ["best_ask"].ToString ()),
+					float.Parse (ticker ["best_ask_size"].ToString ()),
+					float.Parse (ticker ["volume"].ToString ())
+				);
+			} catch (Exception e) {
+				Console.Error.WriteLine (e.Message);
+				Fire (TRIGGER_STOP);
+			}
 		}
 	}
 }

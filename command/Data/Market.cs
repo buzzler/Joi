@@ -8,51 +8,59 @@ namespace Joi.Data
 		private	string _name;
 		private	List<Trade> _trades;
 		private	List<int> _ids;
-		private List<Trade> _stashTrade;
-		private	List<int> _stashId;
+		private	float _lastHighestBid;
+		private	float _lastHighestSize;
+		private	float _lastLowestAsk;
+		private	float _lastLowestSize;
+		private	float _volume;
 
 		public	string name { get { return _name; } }
+		public	List<Trade> trades { get { return _trades; } }
+		public	float lastHighestBid { get { return _lastHighestBid; } }
+		public	float lastHighestSize { get { return _lastHighestSize; } }
+		public	float lastLowestAsk { get { return _lastLowestAsk; } }
+		public	float lastLowestSize { get { return _lastLowestSize; } }
+		public	float volume { get { return _volume; } }
 
 		public	Market (string name) 
 		{
 			_name = name;
 			_trades = new List<Trade> ();
 			_ids = new List<int> ();
-			_stashTrade = new List<Trade> ();
-			_stashId = new List<int> ();
+			_lastHighestBid = 0f;
+			_lastHighestSize = 0f;
+			_lastLowestAsk = 0f;
+			_lastLowestSize = 0f;
+			_volume = 0f;
 		}
 
-		public	void BegineUpdate()
-		{
-			_stashTrade.Clear ();
-		}
-
-		public	void UpdateTrade(int id, double price, double amount, int timestamp)
+		public	void AddNewTrade(int id, double price, double amount, int timestamp)
 		{
 			if (_ids.Contains (id))
 				return;
-			_stashTrade.Add (new Trade (id, price, amount, timestamp));
-			_stashId.Add (id);
+
+			var last = GetLastTimestamp ();
+			if (timestamp >= last) {
+				_trades.Add (new Trade (id, price, amount, timestamp));
+				_ids.Add (id);
+			}
 		}
 
-		public	void Align(List<Trade> list)
+		public	void AlignTrades(List<Trade> list)
 		{
 			list.Sort ((Trade x, Trade y) => {
 				return x.timestamp - y.timestamp;
 			});
 		}
 
-		public	int EndUpdate()
+		public	void UpdateTicker(float highPrice = 0f, float highAmount = 0f, float lowPrice = 0f, float lowAmount = 0f, float volume = 0f)
 		{
-			int count = _stashId.Count;
-			if (count > 0) {
-				Align (_stashTrade);
-				_trades.AddRange (_stashTrade);
-				_ids.AddRange (_stashId);
-				_stashTrade.Clear ();
-				_stashId.Clear ();
-			}
-			return count;
+			_lastHighestBid = highPrice;
+			_lastHighestSize = highAmount;
+			_lastLowestAsk = lowPrice;
+			_lastLowestSize = lowAmount;
+			_volume = volume;
+			Console.WriteLine ("{0} ticker updated", name);
 		}
 
 		public	int GetLastTimestamp()

@@ -86,18 +86,16 @@ namespace Joi.Brain
 			if (!trades.IsArray)
 				return;
 
-			_market.BegineUpdate ();
 			var count = trades.Count;
 			for (int i = 0; i < count; i++) {
 				var trade = trades [i];
-				_market.UpdateTrade (
+				_market.AddNewTrade (
 					int.Parse (trade ["tid"].ToString ()),
 					double.Parse (trade ["price"].ToString ()),
 					double.Parse (trade ["amount"].ToString ()),
 					int.Parse (trade ["timestamp"].ToString ())
 				);
 			}
-			_market.EndUpdate ();
 		}
 
 		private	void OnSocketError(string message)
@@ -107,28 +105,31 @@ namespace Joi.Brain
 
 		private	void OnSubscribedTrade(JsonData json)
 		{
-			var len = json.Count;
-			if (len < 4)
-				return;
+			try {
+				var len = json.Count;
+				if (len == 2)
+					return;
 
-			var jsonId = json[len-4];
-			var valueId = jsonId.ToString().Trim();
-			int id = -1;
-			if (jsonId.IsInt)
-				id = int.Parse (valueId);
-			else if (jsonId.IsString)
-				return;
-			if (id < 0)
-				return;
-
-			_market.BegineUpdate ();
-			_market.UpdateTrade(
-				id,
-				float.Parse(json[len-2].ToString()),
-				float.Parse(json[len-1].ToString()),
-				int.Parse(json[len-3].ToString())
-			);
-			_market.EndUpdate ();
+				var jsonId = json [len - 4];
+				var valueId = jsonId.ToString ().Trim ();
+				int id = -1;
+				if (jsonId.IsInt)
+					id = int.Parse (valueId);
+				else if (jsonId.IsString)
+					return;
+				if (id < 0)
+					return;
+			
+				_market.AddNewTrade (
+					id,
+					float.Parse (json [len - 2].ToString ()),
+					float.Parse (json [len - 1].ToString ()),
+					int.Parse (json [len - 3].ToString ())
+				);
+			} catch (Exception e) {
+				Console.Error.WriteLine (e.Message);
+				Fire (TRIGGER_STOP);
+			}
 		}
 
 		private	void OnSubscribeOrderBook(JsonData json)
@@ -138,7 +139,21 @@ namespace Joi.Brain
 
 		private	void OnSubscribeTicker(JsonData json)
 		{
-//			Console.WriteLine ("ticker: {0}", json.ToJson ());
+			try {
+				if (json.Count  == 2)
+					return;
+				
+				_market.UpdateTicker (
+					float.Parse (json [1].ToString ()), 
+					float.Parse (json [2].ToString ()), 
+					float.Parse (json [3].ToString ()),
+					float.Parse (json [4].ToString ()),
+					float.Parse (json [8].ToString ())
+				);
+			} catch (Exception e) {
+				Console.Error.WriteLine (e.Message);
+				Fire (TRIGGER_STOP);
+			}
 		}
 	}
 }
