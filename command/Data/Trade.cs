@@ -11,11 +11,16 @@ namespace Joi.Data
 		private	int _timestamp;
 
 		public	int id { get { return _id; } }
+
 		public	double price { get { return _price; } }
+
 		public	double amount { get { return _amount; } }
+
+		public	double absolute { get { return Math.Abs (price); } }
+
 		public	int timestamp { get { return _timestamp; } }
 
-		public	Trade(int id, double price, double amount, int timestamp)
+		public	Trade (int id, double price, double amount, int timestamp)
 		{
 			_id = id;
 			_price = price;
@@ -23,7 +28,7 @@ namespace Joi.Data
 			_timestamp = timestamp;
 		}
 
-		public	Trade()
+		public	Trade ()
 		{
 			_id = -1;
 			_price = 0f;

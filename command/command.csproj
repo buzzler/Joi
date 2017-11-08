@@ -72,6 +72,12 @@
     <Compile Include="Data\Trade.cs" />
     <Compile Include="Data\Market.cs" />
     <Compile Include="Data\Symbol.cs" />
+    <Compile Include="Data\TimeInterval.cs" />
+    <Compile Include="Data\Analyzer.cs" />
+    <Compile Include="Data\Indicator\Candle.cs" />
+    <Compile Include="Data\Indicator\MovingAverage.cs" />
+    <Compile Include="Data\Indicator\ExponentialMovingAverage.cs" />
+    <Compile Include="Data\Indicator\IndicatorUnit.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -83,6 +89,7 @@
     <Folder Include="Brain\" />
     <Folder Include="Data\" />
     <Folder Include="WebSocket\" />
+    <Folder Include="Data\Indicator\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="WebSocket\Newtonsoft.Json.dll" />

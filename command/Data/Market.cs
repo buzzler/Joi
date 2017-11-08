@@ -15,14 +15,20 @@ namespace Joi.Data
 		private	float _volume;
 
 		public	string name { get { return _name; } }
+
 		public	List<Trade> trades { get { return _trades; } }
+
 		public	float lastHighestBid { get { return _lastHighestBid; } }
+
 		public	float lastHighestSize { get { return _lastHighestSize; } }
+
 		public	float lastLowestAsk { get { return _lastLowestAsk; } }
+
 		public	float lastLowestSize { get { return _lastLowestSize; } }
+
 		public	float volume { get { return _volume; } }
 
-		public	Market (string name) 
+		public	Market (string name)
 		{
 			_name = name;
 			_trades = new List<Trade> ();
@@ -34,7 +40,7 @@ namespace Joi.Data
 			_volume = 0f;
 		}
 
-		public	void AddNewTrade(int id, double price, double amount, int timestamp)
+		public	void AddNewTrade (int id, double price, double amount, int timestamp)
 		{
 			if (_ids.Contains (id))
 				return;
@@ -46,14 +52,14 @@ namespace Joi.Data
 			}
 		}
 
-		public	void AlignTrades(List<Trade> list)
+		public	void AlignTrades (List<Trade> list)
 		{
 			list.Sort ((Trade x, Trade y) => {
 				return x.timestamp - y.timestamp;
 			});
 		}
 
-		public	void UpdateTicker(float highPrice = 0f, float highAmount = 0f, float lowPrice = 0f, float lowAmount = 0f, float volume = 0f)
+		public	void UpdateTicker (float highPrice = 0f, float highAmount = 0f, float lowPrice = 0f, float lowAmount = 0f, float volume = 0f)
 		{
 			_lastHighestBid = highPrice;
 			_lastHighestSize = highAmount;
@@ -63,7 +69,7 @@ namespace Joi.Data
 			Console.WriteLine ("{0} ticker updated", name);
 		}
 
-		public	int GetLastTimestamp()
+		public	int GetLastTimestamp ()
 		{
 			int count = _trades.Count;
 			if (count > 0)
@@ -72,7 +78,7 @@ namespace Joi.Data
 				return int.MinValue;
 		}
 
-		public	int GetLastId()
+		public	int GetLastId ()
 		{
 			int count = _trades.Count;
 			if (count > 0)
