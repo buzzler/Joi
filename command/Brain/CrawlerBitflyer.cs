@@ -76,7 +76,7 @@ namespace Joi.Brain
 		{
 		}
 
-		private	void GetTrade(int count = -1, int after = -1)
+		private	void GetTrade (int count = -1, int after = -1)
 		{
 			var trades = _api.GetExecutionHistory (_productCode, count, -1, after);
 			if (trades == null) {
@@ -89,16 +89,18 @@ namespace Joi.Brain
 			var total = trades.Count;
 			for (int i = 0; i < total; i++) {
 				var trade = trades [i];
-				_market.AddNewTrade (
+				_market.ReserveTrade (
 					int.Parse (trade ["id"].ToString ()),
 					double.Parse (trade ["price"].ToString ()),
 					double.Parse (trade ["size"].ToString ()),
 					Utility.Timestamp (DateTime.Parse (trade ["exec_date"].ToString ()))
 				);
 			}
+			_market.FlushTrade ();
+			_market.UpdateChart ();
 		}
 
-		private	void GetTicker()
+		private	void GetTicker ()
 		{
 			try {
 				var ticker = _api.GetTicker (_productCode);

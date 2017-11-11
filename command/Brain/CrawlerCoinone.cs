@@ -13,7 +13,7 @@ namespace Joi.Brain
 		private	float _ratio;
 		private	float _count;
 
-		public CrawlerCoinone (Symbol symbol, bool logging = true) : base("Coinone", Joi.Coinone.Limit.QUERY_TIMEOUT, logging)
+		public CrawlerCoinone (Symbol symbol, bool logging = true) : base ("Coinone", Joi.Coinone.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
 			_market = new Market (name);
@@ -31,7 +31,7 @@ namespace Joi.Brain
 			}
 		}
 
-		protected override void OnEntryInit()
+		protected override void OnEntryInit ()
 		{
 		}
 
@@ -77,7 +77,7 @@ namespace Joi.Brain
 		{
 		}
 
-		private	void GetTrade(string period = "hour")
+		private	void GetTrade (string period = "hour")
 		{
 			var json = _api.GetCompleteOrders (_currency, period);
 			if (json == null) {
@@ -93,16 +93,18 @@ namespace Joi.Brain
 			var count = trades.Count;
 			for (int i = 0; i < count; i++) {
 				var trade = trades [i];
-				_market.AddNewTrade (
-					int.Parse(trade ["timestamp"].ToString ()),
+				_market.ReserveTrade (
+					int.Parse (trade ["timestamp"].ToString ()),
 					double.Parse (trade ["price"].ToString ()),
 					double.Parse (trade ["qty"].ToString ()),
 					int.Parse (trade ["timestamp"].ToString ())
 				);
 			}
+			_market.FlushTrade ();
+			_market.UpdateChart ();
 		}
 
-		private	void GetTicker()
+		private	void GetTicker ()
 		{
 			try {
 				var json = _api.GetTicker (_currency);

@@ -80,6 +80,8 @@
     <Compile Include="Data\Indicator\Analyzer.cs" />
     <Compile Include="Data\Ticker.cs" />
     <Compile Include="Data\Chart\Candlestick.cs" />
+    <Compile Include="Data\Chart\Analyzer.cs" />
+    <Compile Include="Data\Chart\MovingAverage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

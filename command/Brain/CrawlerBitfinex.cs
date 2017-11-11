@@ -12,7 +12,7 @@ namespace Joi.Brain
 		private	Market _market;
 		private	string _symbol;
 
-		public	CrawlerBitfinex(Symbol symbol, bool logging = true) : base ("Bitfinex", Joi.Bitfinex.Limit.QUERY_TIMEOUT, logging)
+		public	CrawlerBitfinex (Symbol symbol, bool logging = true) : base ("Bitfinex", Joi.Bitfinex.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
 			_market = new Market (name);
@@ -76,7 +76,7 @@ namespace Joi.Brain
 		{
 		}
 
-		private	void GetTradeByWeb(int timestamp)
+		private	void GetTradeByWeb (int timestamp)
 		{
 			var trades = _api.GetTrades (_symbol, timestamp);
 			if (trades == null) {
@@ -89,21 +89,23 @@ namespace Joi.Brain
 			var count = trades.Count;
 			for (int i = 0; i < count; i++) {
 				var trade = trades [i];
-				_market.AddNewTrade (
+				_market.ReserveTrade (
 					int.Parse (trade ["tid"].ToString ()),
 					double.Parse (trade ["price"].ToString ()),
 					double.Parse (trade ["amount"].ToString ()),
 					int.Parse (trade ["timestamp"].ToString ())
 				);
 			}
+			_market.FlushTrade ();
+			_market.UpdateChart ();
 		}
 
-		private	void OnSocketError(string message)
+		private	void OnSocketError (string message)
 		{
 			Fire (TRIGGER_STOP);
 		}
 
-		private	void OnSubscribedTrade(JsonData json)
+		private	void OnSubscribedTrade (JsonData json)
 		{
 			try {
 				var len = json.Count;
@@ -120,27 +122,28 @@ namespace Joi.Brain
 				if (id < 0)
 					return;
 			
-				_market.AddNewTrade (
+				_market.AddTrade (
 					id,
 					float.Parse (json [len - 2].ToString ()),
 					float.Parse (json [len - 1].ToString ()),
 					int.Parse (json [len - 3].ToString ())
 				);
+				_market.UpdateChart ();
 			} catch (Exception e) {
 				Console.Error.WriteLine (e.Message);
 				Fire (TRIGGER_STOP);
 			}
 		}
 
-		private	void OnSubscribeOrderBook(JsonData json)
+		private	void OnSubscribeOrderBook (JsonData json)
 		{
 //			Console.WriteLine ("order: {0}", json.ToJson ());
 		}
 
-		private	void OnSubscribeTicker(JsonData json)
+		private	void OnSubscribeTicker (JsonData json)
 		{
 			try {
-				if (json.Count  == 2)
+				if (json.Count == 2)
 					return;
 				
 				_market.ticker.Update (

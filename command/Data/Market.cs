@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Joi.Data.Chart;
 
 namespace Joi.Data
 {
@@ -7,8 +8,10 @@ namespace Joi.Data
 	{
 		private	string _name;
 		private	List<Trade> _trades;
+		private	List<Trade> _reserved;
 		private	List<int> _ids;
 		private	Ticker _ticker;
+		private	Analyzer[] _analyzers;
 
 		public	string name { get { return _name; } }
 
@@ -18,29 +21,87 @@ namespace Joi.Data
 		{
 			_name = name;
 			_trades = new List<Trade> ();
+			_reserved = new List<Trade> ();
 			_ids = new List<int> ();
 			_ticker = new Ticker ();
+			_analyzers = new Analyzer[] {
+				new Analyzer (TimeInterval.MINUTE_3, TimeInterval.DAY_1),
+				new Analyzer (TimeInterval.MINUTE_5, TimeInterval.DAY_1),
+				new Analyzer (TimeInterval.MINUTE_15, TimeInterval.DAY_1)
+			};
 		}
 
-		public	void AddNewTrade (int id, double price, double amount, int timestamp)
+		public	void ReserveTrade (int id, double price, double amount, int timestamp)
+		{
+			if (_ids.Contains (id))
+				return;
+
+			var t = new Trade (id, price, amount, timestamp);
+			_reserved.Add (t);
+		}
+
+		public	void FlushTrade()
+		{
+			SortTrade (_reserved);
+
+			var count = _reserved.Count;
+			for (int i = 0; i < count; i++) {
+				var trade = _reserved [i];
+				_trades.Add (trade);
+				_ids.Add (trade.id);
+				if (trade.timestamp < GetLastTimestamp ()) {
+					SortTrade (_trades);
+				}
+			}
+			_reserved.Clear ();
+			RemoveTrade (GetLastTimestamp () - (int)TimeInterval.DAY_1);
+		}
+
+		public	void AddTrade (int id, double price, double amount, int timestamp)
 		{
 			if (_ids.Contains (id))
 				return;
 
 			var t = new Trade (id, price, amount, timestamp);
 			_trades.Add (t);
-			if (timestamp < GetLastTimestamp ()) {
-				AlignTrades ();
-			}
 			_ids.Add (t.id);
-			Console.WriteLine ("{0} trade updated", name);
+			if (timestamp < GetLastTimestamp ()) {
+				SortTrade (_trades);
+			}
+			RemoveTrade (timestamp - (int)TimeInterval.DAY_1);
 		}
 
-		public	void AlignTrades ()
+		private	int RemoveTrade (int timestamp)
 		{
-			_trades.Sort ((Trade x, Trade y) => {
+			int removed = 0;
+			int count = _trades.Count;
+			for (int i = 0; i < count; i++) {
+				var trade = _trades [i];
+				if (trade.timestamp < timestamp) {
+					_ids.Remove (trade.id);
+					_trades.Remove (trade);
+					i--;
+					count--;
+					removed++;
+				} else {
+					break;
+				}
+			}
+			return removed;
+		}
+
+		private	void SortTrade (List<Trade> trades)
+		{
+			trades.Sort ((Trade x, Trade y) => {
 				return x.timestamp - y.timestamp;
 			});
+		}
+
+		public	void UpdateChart()
+		{
+			foreach (var analyzer in _analyzers) {
+				analyzer.AssignCandle (_trades);
+			}
 		}
 
 		public	int GetLastTimestamp ()
