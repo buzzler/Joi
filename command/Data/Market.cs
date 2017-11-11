@@ -7,6 +7,7 @@ namespace Joi.Data
 	public class Market
 	{
 		private	string _name;
+		private	TimeInterval _limit;
 		private	List<Trade> _trades;
 		private	List<Trade> _reserved;
 		private	List<int> _ids;
@@ -17,17 +18,19 @@ namespace Joi.Data
 
 		public	Ticker ticker { get { return _ticker; } }
 
-		public	Market (string name)
+		public	Market (string name, TimeInterval limit = TimeInterval.DAY_3)
 		{
 			_name = name;
+			_limit = limit;
 			_trades = new List<Trade> ();
 			_reserved = new List<Trade> ();
 			_ids = new List<int> ();
 			_ticker = new Ticker ();
 			_analyzers = new Analyzer[] {
-				new Analyzer (TimeInterval.MINUTE_3, TimeInterval.DAY_1),
-				new Analyzer (TimeInterval.MINUTE_5, TimeInterval.DAY_1),
-				new Analyzer (TimeInterval.MINUTE_15, TimeInterval.DAY_1)
+				new Analyzer (TimeInterval.MINUTE_1, TimeInterval.HOUR_3),
+				new Analyzer (TimeInterval.MINUTE_3, TimeInterval.HOUR_9),
+				new Analyzer (TimeInterval.MINUTE_5, TimeInterval.HOUR_15),
+				new Analyzer (TimeInterval.MINUTE_15, TimeInterval.HOUR_45)
 			};
 		}
 
@@ -54,7 +57,7 @@ namespace Joi.Data
 				}
 			}
 			_reserved.Clear ();
-			RemoveTrade (GetLastTimestamp () - (int)TimeInterval.DAY_1);
+			RemoveTrade (GetLastTimestamp () - (int)_limit);
 		}
 
 		public	void AddTrade (int id, double price, double amount, int timestamp)
@@ -68,7 +71,7 @@ namespace Joi.Data
 			if (timestamp < GetLastTimestamp ()) {
 				SortTrade (_trades);
 			}
-			RemoveTrade (timestamp - (int)TimeInterval.DAY_1);
+			RemoveTrade (timestamp - (int)_limit);
 		}
 
 		private	int RemoveTrade (int timestamp)

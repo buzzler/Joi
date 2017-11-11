@@ -9,8 +9,7 @@ namespace Joi.Data.Chart
 		private	TimeInterval _unit;
 		private	TimeInterval _limit;
 		private	List<Candlestick> _candlesticks;
-		private	List<MovingAverage> _movingAverrage15;
-		private	List<MovingAverage> _movingAverrage50;
+		private	Dictionary<int, List<MovingAverage>> _movingAverrages;
 		private	int _count;
 
 		public	Analyzer (TimeInterval unit, TimeInterval limit)
@@ -18,19 +17,26 @@ namespace Joi.Data.Chart
 			Resize (unit, limit);
 		}
 
-		public	void Resize(TimeInterval unit, TimeInterval limit)
+		public	void Resize (TimeInterval unit, TimeInterval limit)
 		{
 			if (_unit != unit || _limit != limit) {
 				_unit = unit;
 				_limit = limit;
 				_count = (int)((float)limit / (float)unit);
 				_candlesticks = new List<Candlestick> (_count);
-				_movingAverrage15 = new List<MovingAverage> (_count);
-				_movingAverrage50 = new List<MovingAverage> (_count);
-				for (int i = 0; i < _count; i++) {
+				_movingAverrages = new Dictionary<int, List<MovingAverage>> () {
+					{ 15, new List<MovingAverage> (_count) },
+					{ 50, new List<MovingAverage> (_count) }
+				};
+
+				for (int i = 0; i < _count; i++)
 					_candlesticks.Add (new Candlestick ());
-					_movingAverrage15.Add (new MovingAverage ());
-					_movingAverrage50.Add (new MovingAverage ());
+				var itr = _movingAverrages.GetEnumerator ();
+				while (itr.MoveNext ()) {
+					var list = itr.Current.Value;
+					for (int i = 0; i < _count; i++) {
+						list.Add (new MovingAverage ());
+					}
 				}
 			}
 		}
@@ -54,23 +60,39 @@ namespace Joi.Data.Chart
 					index = _count - 1;
 				_candlesticks [index].Assign (trade);
 			}
+
+			AssignMovingAverage ();
 		}
 
-		private	void AssignMovingAverage()
+		private	void AssignMovingAverage ()
 		{
-			
+			var itr = _movingAverrages.GetEnumerator ();
+			while (itr.MoveNext ()) {
+				var scale = itr.Current.Key;
+				var list = itr.Current.Value;
+				for (int i = _count - 1; i >= 0; i--) {
+					var ma = list [i];
+					ma.Begin ();
+					for (int k = 0; k < scale; k++) {
+						int index = i - k;
+						if (index >= 0)
+							ma.Add (_candlesticks [index]);
+					}
+					ma.End ();
+				}
+			}
 		}
 
-		public	override string ToString ()
-		{
-			var sb = new StringBuilder ();
-			sb.AppendFormat ("[analyzer] unit:{0}, limit:{1}", (int)_unit, (int)_limit);
-			sb.AppendLine ();
-			for (int i = 0; i < _count; i++)
-				sb.AppendLine (_candlesticks [i].ToString ());
-
-			return sb.ToString ();
-		}
+//		public	override string ToString ()
+//		{
+//			var sb = new StringBuilder ();
+//			sb.AppendFormat ("[analyzer] unit:{0}, limit:{1}", (int)_unit, (int)_limit);
+//			sb.AppendLine ();
+//			for (int i = 0; i < _count; i++)
+//				sb.AppendLine (_candlesticks [i].ToString ());
+//
+//			return sb.ToString ();
+//		}
 	}
 }
 

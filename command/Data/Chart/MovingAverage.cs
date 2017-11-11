@@ -29,12 +29,18 @@ namespace Joi.Data.Chart
 
 		public	void End ()
 		{
+			int validated = 0;
 			int total = _candles.Count;
 			double sum = 0;
 			for (int i = total - 1; i >= 0; i--) {
-				sum += _candles [i].close;
+				var candle = _candles [i];
+				if (candle.valid) {
+					sum += _candles [i].close;
+					validated++;
+				}
 			}
-			_value = sum / (double)total;
+			if (validated > 0)
+				_value = sum / (double)validated;
 			_candles.Clear ();
 		}
 	}

@@ -12,6 +12,7 @@ namespace Joi.Data.Chart
 		private	int _closeTime;
 		private	double _amount;
 		private	int _count;
+		private	bool _valid;
 
 		public	double high { get { return _high; } }
 
@@ -28,6 +29,8 @@ namespace Joi.Data.Chart
 		public	double amount { get { return _amount; } }
 
 		public	double count { get { return _count; } }
+
+		public	bool valid { get { return _valid; } }
 		
 		public	Candlestick ()
 		{
@@ -44,6 +47,7 @@ namespace Joi.Data.Chart
 			_closeTime = 0;
 			_amount = 0f;
 			_count = 0;
+			_valid = false;
 		}
 
 		public	void Assign (Trade trade)
@@ -66,12 +70,13 @@ namespace Joi.Data.Chart
 				_low = price;
 			_amount += Math.Abs (trade.amount);
 			_count++;
+			_valid = true;
 		}
 
-		public	override string ToString()
-		{
-			return string.Format ("open:{0}, close:{1}, high:{2}, low: {3}, amount: {4}, inc:{5}, dec:{6}, total:{7}", _open, _close, _high, _low, _amount, increasing, decreasing, _count);
-		}
+//		public	override string ToString()
+//		{
+//			return string.Format ("open:{0}, close:{1}, high:{2}, low: {3}, amount: {4}, inc:{5}, dec:{6}, total:{7}", _open, _close, _high, _low, _amount, increasing, decreasing, _count);
+//		}
 	}
 }
 
