@@ -13,7 +13,7 @@ namespace Joi.Data.Indicator
 
 		public	double value { get { return _value; } }
 
-		public ExponentialMovingAverage (int scale, int openTime, int closeTime) : base (openTime, closeTime)
+		public ExponentialMovingAverage (int scale)
 		{
 			_scale = scale;
 			_value = 0;

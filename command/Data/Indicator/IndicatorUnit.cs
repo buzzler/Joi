@@ -35,18 +35,12 @@ namespace Joi.Data.Indicator
 			}
 		}
 
-		public	IndicatorUnit (int openTime, int closeTime)
-		{
-			_openTime = openTime;
-			_closeTime = closeTime;
-		}
-
 		public	void ResetTimeForward (int openTime, TimeInterval interval)
 		{
 			_openTime = openTime;
 			_closeTime = openTime + (int)interval;
-			if (_previous != null)
-				_previous.ResetTimeForward (_closeTime, interval);
+			if (_next != null)
+				_next.ResetTimeForward (_closeTime, interval);
 		}
 
 		public	void ResetTimeBackward (int closeTime, TimeInterval interval)

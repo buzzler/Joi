@@ -16,8 +16,6 @@ namespace Joi.Data
 
 		public	double amount { get { return _amount; } }
 
-		public	double absolute { get { return Math.Abs (price); } }
-
 		public	int timestamp { get { return _timestamp; } }
 
 		public	Trade (int id, double price, double amount, int timestamp)

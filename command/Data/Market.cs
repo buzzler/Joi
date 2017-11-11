@@ -8,36 +8,18 @@ namespace Joi.Data
 		private	string _name;
 		private	List<Trade> _trades;
 		private	List<int> _ids;
-		private	float _lastHighestBid;
-		private	float _lastHighestSize;
-		private	float _lastLowestAsk;
-		private	float _lastLowestSize;
-		private	float _volume;
+		private	Ticker _ticker;
 
 		public	string name { get { return _name; } }
 
-		public	List<Trade> trades { get { return _trades; } }
-
-		public	float lastHighestBid { get { return _lastHighestBid; } }
-
-		public	float lastHighestSize { get { return _lastHighestSize; } }
-
-		public	float lastLowestAsk { get { return _lastLowestAsk; } }
-
-		public	float lastLowestSize { get { return _lastLowestSize; } }
-
-		public	float volume { get { return _volume; } }
+		public	Ticker ticker { get { return _ticker; } }
 
 		public	Market (string name)
 		{
 			_name = name;
 			_trades = new List<Trade> ();
 			_ids = new List<int> ();
-			_lastHighestBid = 0f;
-			_lastHighestSize = 0f;
-			_lastLowestAsk = 0f;
-			_lastLowestSize = 0f;
-			_volume = 0f;
+			_ticker = new Ticker ();
 		}
 
 		public	void AddNewTrade (int id, double price, double amount, int timestamp)
@@ -45,28 +27,20 @@ namespace Joi.Data
 			if (_ids.Contains (id))
 				return;
 
-			var last = GetLastTimestamp ();
-			if (timestamp >= last) {
-				_trades.Add (new Trade (id, price, amount, timestamp));
-				_ids.Add (id);
+			var t = new Trade (id, price, amount, timestamp);
+			_trades.Add (t);
+			if (timestamp < GetLastTimestamp ()) {
+				AlignTrades ();
 			}
+			_ids.Add (t.id);
+			Console.WriteLine ("{0} trade updated", name);
 		}
 
-		public	void AlignTrades (List<Trade> list)
+		public	void AlignTrades ()
 		{
-			list.Sort ((Trade x, Trade y) => {
+			_trades.Sort ((Trade x, Trade y) => {
 				return x.timestamp - y.timestamp;
 			});
-		}
-
-		public	void UpdateTicker (float highPrice = 0f, float highAmount = 0f, float lowPrice = 0f, float lowAmount = 0f, float volume = 0f)
-		{
-			_lastHighestBid = highPrice;
-			_lastHighestSize = highAmount;
-			_lastLowestAsk = lowPrice;
-			_lastLowestSize = lowAmount;
-			_volume = volume;
-			Console.WriteLine ("{0} ticker updated", name);
 		}
 
 		public	int GetLastTimestamp ()

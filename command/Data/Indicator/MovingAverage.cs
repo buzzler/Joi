@@ -13,7 +13,7 @@ namespace Joi.Data.Indicator
 
 		public	double value { get { return _value; } }
 
-		public MovingAverage (int scale, int openTime, int closeTime) : base (openTime, closeTime)
+		public MovingAverage (int scale)
 		{
 			_scale = scale;
 			_value = 0;
@@ -26,7 +26,7 @@ namespace Joi.Data.Indicator
 			_index = 0;
 		}
 
-		public	bool Assign (Candle candle)
+		public	bool AddCandle (Candle candle)
 		{
 			if (_index >= _scale)
 				return false;
@@ -50,7 +50,7 @@ namespace Joi.Data.Indicator
 			_index = 0;
 		}
 
-		public	void Reset (int scale = -1)
+		public	void ResetValue (int scale = -1)
 		{
 			if (scale > 0) {
 				_scale = scale;

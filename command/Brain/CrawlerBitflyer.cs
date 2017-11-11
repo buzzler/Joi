@@ -102,7 +102,7 @@ namespace Joi.Brain
 		{
 			try {
 				var ticker = _api.GetTicker (_productCode);
-				_market.UpdateTicker (
+				_market.ticker.Update (
 					float.Parse (ticker ["best_bid"].ToString ()),
 					float.Parse (ticker ["best_bid_size"].ToString ()),
 					float.Parse (ticker ["best_ask"].ToString ()),

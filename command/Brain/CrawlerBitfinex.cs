@@ -143,7 +143,7 @@ namespace Joi.Brain
 				if (json.Count  == 2)
 					return;
 				
-				_market.UpdateTicker (
+				_market.ticker.Update (
 					float.Parse (json [1].ToString ()), 
 					float.Parse (json [2].ToString ()), 
 					float.Parse (json [3].ToString ()),

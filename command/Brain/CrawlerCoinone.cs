@@ -106,7 +106,7 @@ namespace Joi.Brain
 		{
 			try {
 				var json = _api.GetTicker (_currency);
-				_market.UpdateTicker (
+				_market.ticker.Update (
 					float.Parse (json ["high"].ToString ()),
 					0f,
 					float.Parse (json ["low"].ToString ()),
