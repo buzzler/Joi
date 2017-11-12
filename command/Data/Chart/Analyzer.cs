@@ -10,6 +10,7 @@ namespace Joi.Data.Chart
 		private	TimeInterval _limit;
 		private	List<Candlestick> _candlesticks;
 		private	Dictionary<int, List<MovingAverage>> _movingAverrages;
+		private	Dictionary<int, List<ExponentialMovingAverage>> _exponentialMovingAverages;
 		private	int _count;
 
 		public	Analyzer (TimeInterval unit, TimeInterval limit)
@@ -28,15 +29,24 @@ namespace Joi.Data.Chart
 					{ 15, new List<MovingAverage> (_count) },
 					{ 50, new List<MovingAverage> (_count) }
 				};
+				_exponentialMovingAverages = new Dictionary<int, List<ExponentialMovingAverage>> () {
+					{ 12, new List<ExponentialMovingAverage> (_count) },
+					{ 26, new List<ExponentialMovingAverage> (_count) }
+				};
 
 				for (int i = 0; i < _count; i++)
 					_candlesticks.Add (new Candlestick ());
 				var itr = _movingAverrages.GetEnumerator ();
 				while (itr.MoveNext ()) {
 					var list = itr.Current.Value;
-					for (int i = 0; i < _count; i++) {
+					for (int i = 0; i < _count; i++)
 						list.Add (new MovingAverage ());
-					}
+				}
+				var itr2 = _exponentialMovingAverages.GetEnumerator ();
+				while (itr2.MoveNext ()) {
+					var list = itr2.Current.Value;
+					for (int i = 0; i < _count; i++)
+						list.Add (new ExponentialMovingAverage ());
 				}
 			}
 		}
@@ -62,6 +72,7 @@ namespace Joi.Data.Chart
 			}
 
 			AssignMovingAverage ();
+			AssignExponentialMovingAverage ();
 		}
 
 		private	void AssignMovingAverage ()
@@ -83,16 +94,32 @@ namespace Joi.Data.Chart
 			}
 		}
 
-//		public	override string ToString ()
-//		{
-//			var sb = new StringBuilder ();
-//			sb.AppendFormat ("[analyzer] unit:{0}, limit:{1}", (int)_unit, (int)_limit);
-//			sb.AppendLine ();
-//			for (int i = 0; i < _count; i++)
-//				sb.AppendLine (_candlesticks [i].ToString ());
-//
-//			return sb.ToString ();
-//		}
+		private	void AssignExponentialMovingAverage ()
+		{
+			var itr = _exponentialMovingAverages.GetEnumerator ();
+			while (itr.MoveNext ()) {
+				var scale = itr.Current.Key;
+				var list = itr.Current.Value;
+				for (int i = 0; i < _count; i++) {
+					var candle = _candlesticks [i];
+					var yesterday = list [i-1];
+					var ema = list [i];
+					ema.Reset ();
+					ema.Calculate (candle, yesterday, scale);
+				}
+			}
+		}
+
+		//		public	override string ToString ()
+		//		{
+		//			var sb = new StringBuilder ();
+		//			sb.AppendFormat ("[analyzer] unit:{0}, limit:{1}", (int)_unit, (int)_limit);
+		//			sb.AppendLine ();
+		//			for (int i = 0; i < _count; i++)
+		//				sb.AppendLine (_candlesticks [i].ToString ());
+		//
+		//			return sb.ToString ();
+		//		}
 	}
 }
 

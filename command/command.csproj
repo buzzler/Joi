@@ -82,6 +82,7 @@
     <Compile Include="Data\Chart\Candlestick.cs" />
     <Compile Include="Data\Chart\Analyzer.cs" />
     <Compile Include="Data\Chart\MovingAverage.cs" />
+    <Compile Include="Data\Chart\ExponentialMovingAverage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
