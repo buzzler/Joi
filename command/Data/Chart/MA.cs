@@ -3,17 +3,17 @@ using System.Collections.Generic;
 
 namespace Joi.Data.Chart
 {
-	public class MovingAverage
+	public class MA
 	{
 		private	double _value;
-		private	List<Candlestick> _candles;
+		private	List<Candle> _candles;
 
 		public	double value { get { return _value; } }
 
-		public MovingAverage ()
+		public MA ()
 		{
 			_value = 0;
-			_candles = new List<Candlestick> ();
+			_candles = new List<Candle> ();
 		}
 
 		public	void Begin ()
@@ -22,7 +22,7 @@ namespace Joi.Data.Chart
 			_candles.Clear ();
 		}
 
-		public	void Add (Candlestick candle)
+		public	void Add (Candle candle)
 		{
 			_candles.Add(candle);
 		}

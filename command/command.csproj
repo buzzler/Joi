@@ -73,16 +73,14 @@
     <Compile Include="Data\Market.cs" />
     <Compile Include="Data\Symbol.cs" />
     <Compile Include="Data\TimeInterval.cs" />
-    <Compile Include="Data\Indicator\Candle.cs" />
-    <Compile Include="Data\Indicator\MovingAverage.cs" />
-    <Compile Include="Data\Indicator\ExponentialMovingAverage.cs" />
-    <Compile Include="Data\Indicator\IndicatorUnit.cs" />
-    <Compile Include="Data\Indicator\Analyzer.cs" />
     <Compile Include="Data\Ticker.cs" />
-    <Compile Include="Data\Chart\Candlestick.cs" />
     <Compile Include="Data\Chart\Analyzer.cs" />
-    <Compile Include="Data\Chart\MovingAverage.cs" />
-    <Compile Include="Data\Chart\ExponentialMovingAverage.cs" />
+    <Compile Include="Data\Chart\EMA.cs" />
+    <Compile Include="Data\Chart\MA.cs" />
+    <Compile Include="Data\Chart\MACD.cs" />
+    <Compile Include="Data\Chart\Signal.cs" />
+    <Compile Include="Data\Chart\MACDOscillator.cs" />
+    <Compile Include="Data\Chart\Candle.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -94,7 +92,6 @@
     <Folder Include="Brain\" />
     <Folder Include="Data\" />
     <Folder Include="WebSocket\" />
-    <Folder Include="Data\Indicator\" />
     <Folder Include="Data\Chart\" />
   </ItemGroup>
   <ItemGroup>

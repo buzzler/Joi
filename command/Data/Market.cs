@@ -29,8 +29,7 @@ namespace Joi.Data
 			_analyzers = new Analyzer[] {
 				new Analyzer (TimeInterval.MINUTE_1, TimeInterval.HOUR_3),
 				new Analyzer (TimeInterval.MINUTE_3, TimeInterval.HOUR_9),
-				new Analyzer (TimeInterval.MINUTE_5, TimeInterval.HOUR_15),
-				new Analyzer (TimeInterval.MINUTE_15, TimeInterval.HOUR_45)
+				new Analyzer (TimeInterval.MINUTE_5, TimeInterval.HOUR_15)
 			};
 		}
 

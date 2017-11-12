@@ -2,7 +2,7 @@
 
 namespace Joi.Data.Chart
 {
-	public class Candlestick
+	public class Candle
 	{
 		private	double _high;
 		private	double _low;
@@ -32,7 +32,7 @@ namespace Joi.Data.Chart
 
 		public	bool valid { get { return _valid; } }
 		
-		public	Candlestick ()
+		public	Candle ()
 		{
 			Reset ();
 		}
@@ -72,11 +72,6 @@ namespace Joi.Data.Chart
 			_count++;
 			_valid = true;
 		}
-
-//		public	override string ToString()
-//		{
-//			return string.Format ("open:{0}, close:{1}, high:{2}, low: {3}, amount: {4}, inc:{5}, dec:{6}, total:{7}", _open, _close, _high, _low, _amount, increasing, decreasing, _count);
-//		}
 	}
 }
 

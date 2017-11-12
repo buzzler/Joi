@@ -40,12 +40,22 @@ namespace Joi
 			};
 			for (int i = 0; i < threads.Length; i++)
 				threads [i].Start ();
-			bool alive = true;
-			while (alive) {
-				for (int i = 0; i < threads.Length; i++) {
-					alive &= threads [i].IsAlive;
+			while (true) {
+				var command = Console.ReadLine ();
+				if (command == "exit") {
+					for (int i = 0; i < threads.Length; i++)
+						threads [i].Abort ();
+					break;
 				}
+				else
+					Console.WriteLine ("unknown command: '{0}'", command);
 			}
+//			bool alive = true;
+//			while (alive) {
+//				for (int i = 0; i < threads.Length; i++) {
+//					alive &= threads [i].IsAlive;
+//				}
+//			}
 		}
 	}
 
