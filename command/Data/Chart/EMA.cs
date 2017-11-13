@@ -5,8 +5,8 @@ namespace Joi.Data.Chart
 {
 	public class EMA
 	{
-		private	double _value;
-		private	List<Candle> _candles;
+		protected	double _value;
+		protected	List<Candle> _candles;
 
 		public	double value { get { return _value; } }
 
@@ -16,18 +16,18 @@ namespace Joi.Data.Chart
 			_candles = new List<Candle> ();
 		}
 
-		public	void Begin ()
+		public	virtual void Begin ()
 		{
 			_value = 0;
 			_candles.Clear ();
 		}
 
-		public	void Add (Candle candle)
+		public	virtual void Add (Candle candle)
 		{
 			_candles.Add(candle);
 		}
 
-		public	void End ()
+		public	virtual void End ()
 		{
 			if (_candles.Count > 0) {
 				_value = GetExponential (_candles.Count);
@@ -35,7 +35,7 @@ namespace Joi.Data.Chart
 			}
 		}
 
-		private	double GetExponential(int scale)
+		protected	double GetExponential(int scale)
 		{
 			var candle = _candles [scale - 1];
 			if (scale == 1)

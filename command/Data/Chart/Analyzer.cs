@@ -14,6 +14,7 @@ namespace Joi.Data.Chart
 		private	List<MACD> _macds;
 		private	List<Signal> _signals;
 		private	List<MACDOscillator> _oscillators;
+		private	List<BollingerBand> _bollingerbands;
 
 		private	int _count;
 
@@ -40,12 +41,14 @@ namespace Joi.Data.Chart
 				_macds = new List<MACD> (_count);
 				_signals = new List<Signal> (_count);
 				_oscillators = new List<MACDOscillator> (_count);
+				_bollingerbands = new List<BollingerBand> (_count);
 
 				for (int i = 0; i < _count; i++) {
 					_candles.Add (new Candle ());
 					_macds.Add (new MACD ());
 					_signals.Add (new Signal ());
 					_oscillators.Add (new MACDOscillator ());
+					_bollingerbands.Add (new BollingerBand ());
 				}
 				var itr = _mas.GetEnumerator ();
 				while (itr.MoveNext ()) {
@@ -87,6 +90,7 @@ namespace Joi.Data.Chart
 			AssignMACD ();
 			AssignSignal ();
 			AssignMACDOscillator ();
+			AssignBollingerBand ();
 		}
 
 		private	void AssignMA ()
@@ -153,6 +157,21 @@ namespace Joi.Data.Chart
 		{
 			for (int i = _count - 1; i >= 0; i--)
 				_oscillators [i].Calculate (_macds [i], _signals [i]);
+		}
+
+		private	void AssignBollingerBand()
+		{
+			var scale = 20;
+			for (int i = _count - 1; i >= 0; i--) {
+				var bb = _bollingerbands [i];
+				bb.Begin ();
+				for (int k = scale - 1; k >= 0; k--) {
+					int index = i - k;
+					if (index >= 0)
+						bb.Add (_candles [index]);
+				}
+				bb.End ();
+			}
 		}
 	}
 }
