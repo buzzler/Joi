@@ -4,6 +4,7 @@ namespace Joi.Data
 {
 	public enum TimeInterval
 	{
+		NONE		= 0,
 		SECOND_1	= 1,
 		SECOND_2	= 2,
 		SECOND_3	= 3,

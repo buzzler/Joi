@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading;
 using Joi.FSM;
+using Joi.Data;
+using System.Collections.Generic;
 
 namespace Joi.Brain
 {
@@ -19,6 +21,15 @@ namespace Joi.Brain
 		private const string TRIGGER_CONNECT	= "connect";
 		private	const string TRIGGER_START		= "start";
 		private	const string TRIGGER_STOP		= "stop";
+
+		private	const string TRADE		= "trade";
+		private	const string BITFINEX	= "bitfinex";
+		private	const string BITFLYER	= "bitflyer";
+		private	const string COINONE	= "coinone";
+
+		private	Symbol _symbol = Symbol.BITCOIN;
+		private	Dictionary<string, StateMachine> _stateMachines;
+		private	Dictionary<string, Thread> _threads;
 
 		public	AppLogic(bool logging = true) : base("AppLogic", 1000, logging)
 		{
@@ -63,10 +74,29 @@ namespace Joi.Brain
 
 		private	void OnEntryInit()
 		{
+			_stateMachines = new Dictionary<string, StateMachine> () {
+				{ TRADE, new TradeLogic (logging) },
+				{ BITFINEX, new CrawlerBitfinex (_symbol, logging) },
+				{ BITFLYER, new CrawlerBitflyer (_symbol, logging) },
+				{ COINONE, new CrawlerCoinone (_symbol, logging) }
+			};
+			_threads = new Dictionary<string, Thread> () {
+				{ TRADE, new Thread (_stateMachines [TRADE].Run) },
+				{ BITFINEX, new Thread (_stateMachines [BITFINEX].Run) },
+				{ BITFLYER, new Thread (_stateMachines [BITFLYER].Run) },
+				{ COINONE, new Thread (_stateMachines [COINONE].Run) }
+			};
+			foreach (var thread in _threads.Values)
+				thread.Start ();
 		}
 
 		private	void OnLoopInit()
 		{
+			bool alive = true;
+			foreach (var thread in _threads.Values)
+				alive &= thread.IsAlive;
+			if (alive)
+				Fire (TRIGGER_COMPLETE);
 		}
 
 		private	void OnExitInit()
@@ -79,30 +109,24 @@ namespace Joi.Brain
 
 		private	void OnEntryStop()
 		{
+			foreach (var sm in _stateMachines.Values)
+				sm.End ();
 		}
 
 		private	void OnLoopStop()
 		{
+			bool alive = false;
+			foreach (var thread in _threads.Values)
+				alive |= thread.IsAlive;
+			if (!alive)
+				End ();
 		}
 
 		private	void OnExitStop()
 		{
-		}
-
-		#endregion
-
-		#region 'Running' state
-
-		private	void OnEntryRun()
-		{
-		}
-
-		private	void OnLoopRun()
-		{
-		}
-
-		private	void OnExitRun()
-		{
+			_stateMachines = null;
+			_threads = null;
+			System.GC.Collect ();
 		}
 
 		#endregion
@@ -135,6 +159,66 @@ namespace Joi.Brain
 
 		private	void OnExitDisconnect()
 		{
+		}
+
+		#endregion
+
+		#region 'Running' state
+
+		private	void OnEntryRun()
+		{
+		}
+
+		private	void OnLoopRun()
+		{
+			PrintMainMenu ();
+		}
+
+		private	void OnExitRun()
+		{
+		}
+
+		#endregion
+
+		#region commandline parser
+
+		private	void PrintMainMenu()
+		{
+			Console.Clear ();
+			Console.WriteLine ("1. dump to file");
+			Console.WriteLine ("2. exit");
+			Console.Write ("> ");
+			Console.CursorVisible = true;
+			string input = Console.ReadLine ();
+			Console.CursorVisible = false;
+
+			switch (input) {
+			case "1":
+				OnSelectDumpToFiles ();
+				break;
+			case "2":
+				OnSelectExit ();
+				break;
+			}
+		}
+
+		private	void OnSelectDumpToFiles()
+		{
+			Console.Clear ();
+			Console.WriteLine ("processing..");
+			foreach (var sm in _stateMachines.Values) {
+				if (sm is CrawlerLogic) {
+					(sm as CrawlerLogic).Dump ();
+				}
+			}
+			Thread.Sleep (2000);
+		}
+
+		private	void OnSelectExit()
+		{
+			Console.Clear ();
+			Console.WriteLine ("exiting..");
+			Fire (TRIGGER_STOP);
 		}
 
 		#endregion

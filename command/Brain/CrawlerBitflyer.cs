@@ -16,7 +16,9 @@ namespace Joi.Brain
 		public CrawlerBitflyer (Symbol symbol, bool logging = true) : base ("Bitflyer", Joi.Bitflyer.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
-			_market = new Market (name);
+			_market = new Market (name, TimeInterval.DAY_1);
+			_market.SetAnalyzer (TimeInterval.MINUTE_1, TimeInterval.HOUR_2);
+			_market.SetAnalyzer (TimeInterval.MINUTE_15, TimeInterval.DAY_1);
 			_ratio = 4;
 			_count = 0;
 
@@ -74,6 +76,11 @@ namespace Joi.Brain
 
 		protected override void OnExitStop ()
 		{
+		}
+
+		public override void Dump ()
+		{
+			Console.WriteLine ("{0} was dumpped", name);
 		}
 
 		private	void GetTrade (int count = -1, int after = -1)

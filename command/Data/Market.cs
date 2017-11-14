@@ -12,7 +12,7 @@ namespace Joi.Data
 		private	List<Trade> _reserved;
 		private	List<int> _ids;
 		private	Ticker _ticker;
-		private	Analyzer[] _analyzers;
+		private	Dictionary <TimeInterval, Analyzer> _analyzers;
 
 		public	string name { get { return _name; } }
 
@@ -26,11 +26,26 @@ namespace Joi.Data
 			_reserved = new List<Trade> ();
 			_ids = new List<int> ();
 			_ticker = new Ticker ();
-			_analyzers = new Analyzer[] {
-				new Analyzer (TimeInterval.MINUTE_1, TimeInterval.HOUR_3),
-				new Analyzer (TimeInterval.MINUTE_3, TimeInterval.HOUR_9),
-				new Analyzer (TimeInterval.MINUTE_5, TimeInterval.HOUR_15)
-			};
+			_analyzers = new Dictionary<TimeInterval, Analyzer> ();
+		}
+
+		public	void SetAnalyzer(TimeInterval interval, TimeInterval limit = TimeInterval.NONE)
+		{
+			if (_analyzers.ContainsKey (interval))
+				return;
+
+			if (limit == TimeInterval.NONE)
+				limit = _limit;
+
+			var analyzer = new Analyzer (interval, limit);
+			_analyzers.Add (interval, analyzer);
+		}
+
+		public	Analyzer GetAnalyzer(TimeInterval interval)
+		{
+			if (_analyzers.ContainsKey (interval))
+				return _analyzers [interval];
+			return null;
 		}
 
 		public	void ReserveTrade (int id, double price, double amount, int timestamp)
@@ -101,9 +116,8 @@ namespace Joi.Data
 
 		public	void UpdateChart()
 		{
-			foreach (var analyzer in _analyzers) {
+			foreach (var analyzer in _analyzers.Values)
 				analyzer.AssignCandle (_trades);
-			}
 		}
 
 		public	int GetLastTimestamp ()

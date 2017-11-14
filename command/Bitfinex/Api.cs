@@ -209,7 +209,6 @@ namespace Joi.Bitfinex
 			} else if (json.IsObject) {
 				var responce = json ["event"].ToString ();
 				if (responce == "info") {
-					Console.WriteLine ("version: {0}", json ["version"].ToString ());
 					return;
 				} else if (responce != "subscribed")
 					return;

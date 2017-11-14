@@ -101,10 +101,10 @@ namespace Joi.FSM
 		/// </summary>
 		public	void FireOnLoop()
 		{
-			if (_onLoop != null) {
-				if (stateMachine.logging) Console.WriteLine ("{0}::{1}::OnLoop", stateMachine.name, name);
+//			if (_onLoop != null) {
+//				if (stateMachine.logging) Console.WriteLine ("{0}::{1}::OnLoop", stateMachine.name, name);
 				_onLoop ();
-			}
+//			}
 		}
 
 		/// <summary>

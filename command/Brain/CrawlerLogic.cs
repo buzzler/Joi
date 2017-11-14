@@ -68,6 +68,8 @@ namespace Joi.Brain
 		protected abstract void OnExitStop();
 
 		#endregion
+
+		public abstract void Dump();
 	}
 }
 

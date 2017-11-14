@@ -15,7 +15,12 @@ namespace Joi.Brain
 		public	CrawlerBitfinex (Symbol symbol, bool logging = true) : base ("Bitfinex", Joi.Bitfinex.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
-			_market = new Market (name);
+			_market = new Market (name, TimeInterval.DAY_1);
+			_market.SetAnalyzer (TimeInterval.SECOND_30, TimeInterval.MINUTE_60);
+			_market.SetAnalyzer (TimeInterval.MINUTE_1, TimeInterval.HOUR_2);
+			_market.SetAnalyzer (TimeInterval.MINUTE_5, TimeInterval.HOUR_10);
+			_market.SetAnalyzer (TimeInterval.MINUTE_15, TimeInterval.DAY_1);
+
 			switch (symbol) {
 			case Symbol.BITCOIN:
 				_symbol = "btcusd";
@@ -74,6 +79,11 @@ namespace Joi.Brain
 
 		protected override void OnExitStop ()
 		{
+		}
+
+		public override void Dump ()
+		{
+			Console.WriteLine ("{0} was dumpped", name);
 		}
 
 		private	void GetTradeByWeb (int timestamp)
