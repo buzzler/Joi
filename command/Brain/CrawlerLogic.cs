@@ -1,5 +1,7 @@
 ﻿using System;
 using Joi.FSM;
+using Mono.Data.Sqlite;
+using Joi.Data;
 
 namespace Joi.Brain
 {
@@ -8,10 +10,12 @@ namespace Joi.Brain
 		protected const string STATE_INITIALIZING = "Initializing";
 		protected const string STATE_GATHERING = "Gathering";
 		protected const string STATE_STOPPED = "Stopped";
-
 		protected const string TRIGGER_COMPLETE = "complete";
 		protected const string TRIGGER_STOP = "stop";
 		protected const string TRIGGER_START = "start";
+		protected Market _market;
+		protected string _dump;
+		protected Action _callback;
 
 		public CrawlerLogic (string name, int timeout, bool logging = true) : base(name, timeout, logging)
 		{
@@ -53,7 +57,11 @@ namespace Joi.Brain
 
 		protected abstract void OnEntryGather();
 
-		protected abstract void OnLoopGather();
+		protected virtual void OnLoopGather()
+		{
+			if (!string.IsNullOrEmpty(_dump))
+				Dump ();
+		}
 
 		protected abstract void OnExitGather();
 
@@ -69,7 +77,35 @@ namespace Joi.Brain
 
 		#endregion
 
-		public abstract void Dump();
+		public void DumpAsync(string filename, Action callback)
+		{
+			_dump = filename;
+			_callback = callback;
+		}
+
+		public	void Dump()
+		{
+			var filename = _dump;
+			_dump = null;
+
+			try {
+				if (_market != null && filename != null) {
+					var connsb = new SqliteConnectionStringBuilder ();
+					connsb.DataSource = filename;
+					using (var conn = new SqliteConnection (connsb.ConnectionString)) {
+						conn.Open ();
+						var command = conn.CreateCommand ();
+						_market.Dump (command);
+						conn.Close ();
+					}
+				}
+			} catch (Exception e) {
+				Console.Error.WriteLine (e.Message);
+			} finally {
+				if (_callback != null)
+					_callback ();
+			}
+		}
 	}
 }
 

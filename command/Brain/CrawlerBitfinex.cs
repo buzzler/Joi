@@ -3,23 +3,25 @@ using Joi.Bitfinex;
 using LitJson;
 using Joi.Data;
 using WebSocketSharp;
+using Mono.Data.Sqlite;
 
 namespace Joi.Brain
 {
 	public class CrawlerBitfinex : CrawlerLogic
 	{
 		private	Api _api;
-		private	Market _market;
 		private	string _symbol;
 
 		public	CrawlerBitfinex (Symbol symbol, bool logging = true) : base ("Bitfinex", Joi.Bitfinex.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
-			_market = new Market (name, TimeInterval.DAY_1);
-			_market.SetAnalyzer (TimeInterval.SECOND_30, TimeInterval.MINUTE_60);
+			_market = new Market (name, TimeInterval.DAY_2);
+			_market.SetAnalyzer (TimeInterval.SECOND_30, TimeInterval.HOUR_2);
 			_market.SetAnalyzer (TimeInterval.MINUTE_1, TimeInterval.HOUR_2);
+			_market.SetAnalyzer (TimeInterval.MINUTE_3, TimeInterval.HOUR_5);
 			_market.SetAnalyzer (TimeInterval.MINUTE_5, TimeInterval.HOUR_10);
-			_market.SetAnalyzer (TimeInterval.MINUTE_15, TimeInterval.DAY_1);
+			_market.SetAnalyzer (TimeInterval.MINUTE_10, TimeInterval.HOUR_15);
+			_market.SetAnalyzer (TimeInterval.MINUTE_15, TimeInterval.DAY_2);
 
 			switch (symbol) {
 			case Symbol.BITCOIN:
@@ -46,7 +48,6 @@ namespace Joi.Brain
 
 		protected override void OnEntryGather ()
 		{
-			// for WebSocket
 			_api.Connect (OnSocketError);
 			_api.SubscribeTrade (_symbol, OnSubscribedTrade);
 			_api.SubscribeOrderBook (_symbol, OnSubscribeOrderBook);
@@ -55,10 +56,7 @@ namespace Joi.Brain
 
 		protected override void OnLoopGather ()
 		{
-			// for RestAPI
-//			GetTrade (_market.GetLastTimestamp ());
-//			var json2 = _api.GetOrderBook ("btcusd");
-//			var json3 = _api.GetTicker ("btcusd");
+			base.OnLoopGather ();
 		}
 
 		protected override void OnExitGather ()
@@ -79,11 +77,6 @@ namespace Joi.Brain
 
 		protected override void OnExitStop ()
 		{
-		}
-
-		public override void Dump ()
-		{
-			Console.WriteLine ("{0} was dumpped", name);
 		}
 
 		private	void GetTradeByWeb (int timestamp)
@@ -147,7 +140,6 @@ namespace Joi.Brain
 
 		private	void OnSubscribeOrderBook (JsonData json)
 		{
-//			Console.WriteLine ("order: {0}", json.ToJson ());
 		}
 
 		private	void OnSubscribeTicker (JsonData json)

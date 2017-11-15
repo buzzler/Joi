@@ -3,6 +3,8 @@ using System.Threading;
 using Joi.FSM;
 using Joi.Data;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 
 namespace Joi.Brain
 {
@@ -185,8 +187,8 @@ namespace Joi.Brain
 		private	void PrintMainMenu()
 		{
 			Console.Clear ();
-			Console.WriteLine ("1. dump to file");
-			Console.WriteLine ("2. exit");
+			Console.WriteLine ("1. Backup to Database");
+			Console.WriteLine ("2. Exit");
 			Console.Write ("> ");
 			Console.CursorVisible = true;
 			string input = Console.ReadLine ();
@@ -202,15 +204,37 @@ namespace Joi.Brain
 			}
 		}
 
+		private	bool _dumpped;
+
 		private	void OnSelectDumpToFiles()
 		{
+			var filename = string.Format ("{0}.db", DateTime.Now.ToString ("yyyy-MM-dd_hh.mm.ss"));
+			var total = _stateMachines.Count;
+			var current = 0;
+
 			Console.Clear ();
-			Console.WriteLine ("processing..");
+			if (File.Exists (filename)) {
+				Console.WriteLine ("delete a exist file: {0}", filename);
+				File.Delete (filename);
+			}
+			Console.WriteLine ("processing.. {0}", filename);
 			foreach (var sm in _stateMachines.Values) {
+				current++;
 				if (sm is CrawlerLogic) {
-					(sm as CrawlerLogic).Dump ();
+					_dumpped = false;
+					var crawler = sm as CrawlerLogic;
+					Console.WriteLine ("({1}/{2}) backup.. {0}", crawler.name, current, total);
+					crawler.DumpAsync (filename, () => {
+						_dumpped = true;
+					});
+					while (!_dumpped)
+						Thread.Sleep (1000);
+				} else {
+					Console.WriteLine ("({1}/{2}) pass.. {0}", sm.name, current, total);
 				}
 			}
+			Console.WriteLine ("done");
+			Process.Start (filename);
 			Thread.Sleep (2000);
 		}
 
@@ -218,6 +242,7 @@ namespace Joi.Brain
 		{
 			Console.Clear ();
 			Console.WriteLine ("exiting..");
+			Console.CursorVisible = true;
 			Fire (TRIGGER_STOP);
 		}
 

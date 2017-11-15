@@ -21,8 +21,8 @@ namespace Joi.Data
 		public	Trade (int id, double price, double amount, int timestamp)
 		{
 			_id = id;
-			_price = price;
-			_amount = amount;
+			_price = Math.Abs(price);
+			_amount = Math.Abs(amount);
 			_timestamp = timestamp;
 		}
 

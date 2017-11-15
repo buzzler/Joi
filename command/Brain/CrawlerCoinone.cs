@@ -8,7 +8,6 @@ namespace Joi.Brain
 	public class CrawlerCoinone : CrawlerLogic
 	{
 		private	Api _api;
-		private	Market _market;
 		private	string _currency;
 		private	float _ratio;
 		private	float _count;
@@ -42,6 +41,8 @@ namespace Joi.Brain
 			GetTrade ("day");
 			System.Threading.Thread.Sleep (Limit.QUERY_TIMEOUT);
 			GetTicker ();
+//			System.Threading.Thread.Sleep (Limit.QUERY_TIMEOUT);
+//			GetBalance ();
 			Fire (TRIGGER_COMPLETE);
 		}
 
@@ -55,6 +56,7 @@ namespace Joi.Brain
 
 		protected override void OnLoopGather ()
 		{
+			base.OnLoopGather ();
 			_count = (_count + 1) % _ratio;
 			if (_count < 1)
 				GetTicker ();
@@ -77,11 +79,6 @@ namespace Joi.Brain
 
 		protected override void OnExitStop ()
 		{
-		}
-
-		public override void Dump ()
-		{
-			Console.WriteLine ("{0} was dumpped", name);
 		}
 
 		private	void GetTrade (string period = "hour")
@@ -126,6 +123,15 @@ namespace Joi.Brain
 				Console.Error.WriteLine (e.Message);
 				Fire (TRIGGER_STOP);
 			}
+		}
+
+		private	void GetBalance()
+		{
+			var balance = _api.GetBalance ();
+			var balanceDaily = _api.GetDailyBalance ();
+
+			Console.WriteLine ("balance: {0}", balance.ToJson ());
+			Console.WriteLine ("balance(daily): {0}", balanceDaily.ToJson ());
 		}
 	}
 }

@@ -68,7 +68,7 @@ namespace Joi.Data.Chart
 				_high = price;
 			if (_low == 0 || _low > price)
 				_low = price;
-			_amount += Math.Abs (trade.amount);
+			_amount += trade.amount;
 			_count++;
 			_valid = true;
 		}

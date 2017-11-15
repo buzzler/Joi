@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Mono.Data.Sqlite;
 
 namespace Joi.Data.Chart
 {
 	public class Analyzer
 	{
+		private	string _name;
 		private	TimeInterval _unit;
 		private	TimeInterval _limit;
+		private	int _count;
 		private	List<Candle> _candles;
 		private	Dictionary<int, List<MA>> _mas;
 		private	Dictionary<int, List<EMA>> _emas;
@@ -16,10 +19,11 @@ namespace Joi.Data.Chart
 		private	List<MACDOscillator> _oscillators;
 		private	List<BollingerBand> _bollingerbands;
 
-		private	int _count;
+		public	string name { get { return _name; } }
 
-		public	Analyzer (TimeInterval unit, TimeInterval limit)
+		public	Analyzer (string name, TimeInterval unit, TimeInterval limit)
 		{
+			_name = name;
 			Resize (unit, limit);
 		}
 
@@ -159,7 +163,7 @@ namespace Joi.Data.Chart
 				_oscillators [i].Calculate (_macds [i], _signals [i]);
 		}
 
-		private	void AssignBollingerBand()
+		private	void AssignBollingerBand ()
 		{
 			var scale = 20;
 			for (int i = _count - 1; i >= 0; i--) {
@@ -171,6 +175,47 @@ namespace Joi.Data.Chart
 						bb.Add (_candles [index]);
 				}
 				bb.End ();
+			}
+		}
+
+		public	void Dump(SqliteCommand command)
+		{
+			var tablename = string.Format ("{0}_analyzer_{1}", _name, (int)_unit);
+			var sb = new StringBuilder ();
+			sb.AppendFormat ("CREATE TABLE {0} (", tablename);
+			sb.Append ("open REAL DEFAULT 0,");
+			sb.Append ("close REAL DEFAULT 0,");
+			sb.Append ("high REAL DEFAULT 0,");
+			sb.Append ("low REAL DEFAULT 0,");
+			sb.Append ("amount REAL DEFAULT 0,");
+			sb.Append ("ema12 REAL DEFAULT 0,");
+			sb.Append ("ema26 REAL DEFAULT 0,");
+			sb.Append ("macd REAL DEFAULT 0,");
+			sb.Append ("signal REAL DEFAULT 0,");
+			sb.Append ("oscillator REAL DEFAULT 0,");
+			sb.Append ("bollinger_high REAL DEFAULT 0,");
+			sb.Append ("bollinger_low REAL DEFAULT 0);");
+			command.CommandText = sb.ToString ();
+			command.ExecuteNonQuery ();
+
+			for (int i = 0; i < _count; i++) {
+				var candle = _candles [i];
+				sb.Clear ();
+				sb.AppendFormat ("INSERT INTO {0} VALUES(", tablename);
+				sb.AppendFormat ("{0},", candle.open);
+				sb.AppendFormat ("{0},", candle.close);
+				sb.AppendFormat ("{0},", candle.high);
+				sb.AppendFormat ("{0},", candle.low);
+				sb.AppendFormat ("{0},", candle.amount);
+				sb.AppendFormat ("{0},", _emas[12][i].value);
+				sb.AppendFormat ("{0},", _emas[26][i].value);
+				sb.AppendFormat ("{0},", _macds[i].value);
+				sb.AppendFormat ("{0},", _signals[i].value);
+				sb.AppendFormat ("{0},", _oscillators[i].value);
+				sb.AppendFormat ("{0},", _bollingerbands[i].highband);
+				sb.AppendFormat ("{0});", _bollingerbands[i].lowband);
+				command.CommandText = sb.ToString ();
+				command.ExecuteNonQuery ();
 			}
 		}
 	}

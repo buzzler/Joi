@@ -8,6 +8,10 @@ namespace Joi.Data.Chart
 		private	double _highBand;
 		private	double _lowBand;
 
+		public	double highband { get { return _highBand; } }
+
+		public	double lowband { get { return _lowBand; } }
+
 		public	BollingerBand () : base ()
 		{
 			_deviation = 0;

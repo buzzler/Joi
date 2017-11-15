@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Mono.Data.Sqlite;
 using Joi.Data.Chart;
+using System.Text;
 
 namespace Joi.Data
 {
@@ -29,7 +31,7 @@ namespace Joi.Data
 			_analyzers = new Dictionary<TimeInterval, Analyzer> ();
 		}
 
-		public	void SetAnalyzer(TimeInterval interval, TimeInterval limit = TimeInterval.NONE)
+		public	void SetAnalyzer (TimeInterval interval, TimeInterval limit = TimeInterval.NONE)
 		{
 			if (_analyzers.ContainsKey (interval))
 				return;
@@ -37,11 +39,11 @@ namespace Joi.Data
 			if (limit == TimeInterval.NONE)
 				limit = _limit;
 
-			var analyzer = new Analyzer (interval, limit);
+			var analyzer = new Analyzer (_name, interval, limit);
 			_analyzers.Add (interval, analyzer);
 		}
 
-		public	Analyzer GetAnalyzer(TimeInterval interval)
+		public	Analyzer GetAnalyzer (TimeInterval interval)
 		{
 			if (_analyzers.ContainsKey (interval))
 				return _analyzers [interval];
@@ -57,7 +59,7 @@ namespace Joi.Data
 			_reserved.Add (t);
 		}
 
-		public	void FlushTrade()
+		public	void FlushTrade ()
 		{
 			SortTrade (_reserved);
 
@@ -114,7 +116,7 @@ namespace Joi.Data
 			});
 		}
 
-		public	void UpdateChart()
+		public	void UpdateChart ()
 		{
 			foreach (var analyzer in _analyzers.Values)
 				analyzer.AssignCandle (_trades);
@@ -136,6 +138,33 @@ namespace Joi.Data
 				return _trades [count - 1].id;
 			else
 				return int.MinValue;
+		}
+
+		public	void Dump (SqliteCommand command)
+		{
+			var tablename = string.Format ("{0}_market", _name);
+			var sb = new StringBuilder ();
+			sb.AppendFormat ("CREATE TABLE {0} (", tablename);
+			sb.Append ("id INTEGER,");
+			sb.Append ("price REAL,");
+			sb.Append ("amount REAL,");
+			sb.Append ("timestamp INTEGER);");
+			command.CommandText = sb.ToString ();
+			command.ExecuteNonQuery ();
+			var count = _trades.Count;
+			for (int i = 0; i < count; i++) {
+				var trade = _trades [i];
+				sb.Clear ();
+				sb.AppendFormat ("INSERT INTO {0} VALUES (", tablename);
+				sb.AppendFormat ("{0},", trade.id);
+				sb.AppendFormat ("{0},", trade.price);
+				sb.AppendFormat ("{0},", trade.amount);
+				sb.AppendFormat ("{0});", trade.timestamp);
+				command.CommandText = sb.ToString ();
+				command.ExecuteNonQuery ();
+			}
+			foreach (var analyzer in _analyzers.Values)
+				analyzer.Dump (command);
 		}
 	}
 }

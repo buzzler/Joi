@@ -38,6 +38,8 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>WebSocket\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Mono.Data.Sqlite" />
+    <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />

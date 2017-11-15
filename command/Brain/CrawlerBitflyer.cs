@@ -8,7 +8,6 @@ namespace Joi.Brain
 	public class CrawlerBitflyer : CrawlerLogic
 	{
 		private	Api _api;
-		private	Market _market;
 		private	string _productCode;
 		private	float _ratio;
 		private	float _count;
@@ -54,6 +53,7 @@ namespace Joi.Brain
 
 		protected override void OnLoopGather ()
 		{
+			base.OnLoopGather ();
 			_count = (_count + 1) % _ratio;
 			if (_count < 1)
 				GetTicker ();
@@ -76,11 +76,6 @@ namespace Joi.Brain
 
 		protected override void OnExitStop ()
 		{
-		}
-
-		public override void Dump ()
-		{
-			Console.WriteLine ("{0} was dumpped", name);
 		}
 
 		private	void GetTrade (int count = -1, int after = -1)
