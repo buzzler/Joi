@@ -12,6 +12,7 @@ namespace Joi.FSM
 		private State _first;
 		private	State _prev;
 		private	State _current;
+		private	State _any;
 		private	Dictionary<string, State> _states;
 
 		/// <summary>
@@ -57,6 +58,7 @@ namespace Joi.FSM
 			_first = null;
 			_prev = null;
 			_current = null;
+			_any = new State (this, "any");
 			_states = new Dictionary<string, State> ();
 		}
 
@@ -104,6 +106,11 @@ namespace Joi.FSM
 				return null;
 		}
 
+		public	State AnyState()
+		{
+			return _any;
+		}
+
 		/// <summary>
 		/// Start this instance.
 		/// </summary>
@@ -112,6 +119,9 @@ namespace Joi.FSM
 			if (_first != null) {
 				_current = _first;
 				_current.FireOnEntry ();
+			}
+			if (_any != null) {
+				_any.FireOnEntry ();
 			}
 			_enable = true;
 		}
@@ -137,9 +147,13 @@ namespace Joi.FSM
 		/// </summary>
 		public	void Loop()
 		{
-			if (_current != null && _enable) {
+			if (!_enable)
+				return;
+			
+			if (_current != null)
 				_current.FireOnLoop ();
-			}
+			if (_any != null)
+				_any.FireOnLoop ();
 		}
 
 		/// <summary>
@@ -148,13 +162,13 @@ namespace Joi.FSM
 		/// <param name="triggerName">Trigger name.</param>
 		public	void Fire(string triggerName)
 		{
-			if (_current == null)
-				return;
-			if (!_current.HasTrigger (triggerName))
-				return;
-
-			State nextState = GetState (_current.GetConnectedState (triggerName));
-			if (nextState != null) {
+			State nextState = null;
+			if (_current != null && _current.HasTrigger (triggerName)) {
+				nextState = GetState (_current.GetConnectedState (triggerName));
+			} else if (_any != null && _any.HasTrigger (triggerName)) {
+				nextState = GetState (_any.GetConnectedState (triggerName));
+			}
+			if (nextState != null && nextState != _current) {
 				_current.FireOnExit ();
 				_prev = _current;
 				_current = nextState;
@@ -169,6 +183,8 @@ namespace Joi.FSM
 		{
 			if (_current != null)
 				_current.FireOnExit ();
+			if (_any != null)
+				_any.FireOnExit ();
 			_prev = _current;
 			_current = null;
 			_enable = false;
@@ -187,6 +203,7 @@ namespace Joi.FSM
 			_first = null;
 			_prev = null;
 			_current = null;
+			_any = null;
 			_states = null;
 		}
 	}

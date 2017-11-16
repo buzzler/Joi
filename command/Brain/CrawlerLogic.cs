@@ -19,12 +19,13 @@ namespace Joi.Brain
 
 		public CrawlerLogic (string name, int timeout, bool logging = true) : base(name, timeout, logging)
 		{
+			AnyState ()
+				.ConnectTo (TRIGGER_STOP, STATE_STOPPED);
 			SetFirstState (STATE_INITIALIZING)
 				.SetupEntry (OnEntryInit)
 				.SetupLoop (OnLoopInit)
 				.SetupExit (OnExitInit)
-				.ConnectTo (TRIGGER_COMPLETE, STATE_GATHERING)
-				.ConnectTo (TRIGGER_STOP, STATE_STOPPED);
+				.ConnectTo (TRIGGER_COMPLETE, STATE_GATHERING);
 			SetState (STATE_STOPPED)
 				.SetupEntry (OnEntryStop)
 				.SetupLoop (OnLoopStop)
@@ -33,8 +34,7 @@ namespace Joi.Brain
 			SetState (STATE_GATHERING)
 				.SetupEntry (OnEntryGather)
 				.SetupLoop (OnLoopGather)
-				.SetupExit (OnExitGather)
-				.ConnectTo (TRIGGER_STOP, STATE_STOPPED);
+				.SetupExit (OnExitGather);
 			Start ();
 		}
 

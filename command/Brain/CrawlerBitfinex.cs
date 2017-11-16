@@ -39,6 +39,7 @@ namespace Joi.Brain
 
 		protected override void OnLoopInit ()
 		{
+			GetTradeByWeb (Utility.Timestamp(DateTime.Now) - (int)TimeInterval.DAY_1);
 			Fire (TRIGGER_COMPLETE);
 		}
 

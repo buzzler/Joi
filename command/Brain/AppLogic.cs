@@ -13,14 +13,8 @@ namespace Joi.Brain
 		private	const string STATE_INITIALIZING	= "Initializing";
 		private	const string STATE_STOPPED		= "Stopped";
 		private	const string STATE_RUNNING		= "Running";
-		private	const string STATE_BLOCKED		= "Blocked";
-		private	const string STATE_DISCONNECTED	= "Disconnected";
 
 		private const string TRIGGER_COMPLETE	= "complete";
-		private	const string TRIGGER_BLOCK		= "block";
-		private	const string TRIGGER_UNBLOCK	= "unblock";
-		private	const string TRIGGER_DISCONNECT	= "disconnect";
-		private const string TRIGGER_CONNECT	= "connect";
 		private	const string TRIGGER_START		= "start";
 		private	const string TRIGGER_STOP		= "stop";
 
@@ -35,6 +29,8 @@ namespace Joi.Brain
 
 		public	AppLogic(bool logging = true) : base("AppLogic", 1000, logging)
 		{
+			this.AnyState ()
+				.ConnectTo (TRIGGER_STOP, STATE_STOPPED);
 			this.SetFirstState (STATE_INITIALIZING)
 				.SetupEntry (OnEntryInit)
 				.SetupExit (OnExitInit)
@@ -43,22 +39,7 @@ namespace Joi.Brain
 			this.SetState (STATE_RUNNING)
 				.SetupEntry (OnEntryRun)
 				.SetupExit (OnExitRun)
-				.SetupLoop (OnLoopRun)
-				.ConnectTo (TRIGGER_DISCONNECT, STATE_DISCONNECTED)
-				.ConnectTo (TRIGGER_BLOCK, STATE_BLOCKED)
-				.ConnectTo (TRIGGER_STOP, STATE_STOPPED);
-			this.SetState (STATE_BLOCKED)
-				.SetupEntry (OnEntryBlock)
-				.SetupExit (OnExitBlock)
-				.SetupLoop (OnLoopBlock)
-				.ConnectTo (TRIGGER_UNBLOCK, STATE_RUNNING)
-				.ConnectTo (TRIGGER_STOP, STATE_STOPPED);
-			this.SetState (STATE_DISCONNECTED)
-				.SetupEntry (OnEntryDisconnect)
-				.SetupExit (OnExitDisconnect)
-				.SetupLoop (OnLoopDisconnect)
-				.ConnectTo (TRIGGER_CONNECT, STATE_RUNNING)
-				.ConnectTo (TRIGGER_STOP, STATE_STOPPED);
+				.SetupLoop (OnLoopRun);
 			this.SetState (STATE_STOPPED)
 				.SetupEntry (OnEntryStop)
 				.SetupExit (OnExitStop)
@@ -129,38 +110,6 @@ namespace Joi.Brain
 			_stateMachines = null;
 			_threads = null;
 			System.GC.Collect ();
-		}
-
-		#endregion
-
-		#region 'Blocked' state
-
-		private	void OnEntryBlock()
-		{
-		}
-
-		private	void OnLoopBlock()
-		{
-		}
-
-		private	void OnExitBlock()
-		{
-		}
-
-		#endregion
-
-		#region 'Disconnected' state
-
-		private	void OnEntryDisconnect()
-		{
-		}
-
-		private	void OnLoopDisconnect()
-		{
-		}
-
-		private	void OnExitDisconnect()
-		{
 		}
 
 		#endregion
