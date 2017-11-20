@@ -41,8 +41,8 @@ namespace Joi.Brain
 			GetTrade ("day");
 			System.Threading.Thread.Sleep (Limit.QUERY_TIMEOUT);
 			GetTicker ();
-//			System.Threading.Thread.Sleep (Limit.QUERY_TIMEOUT);
-//			GetBalance ();
+			System.Threading.Thread.Sleep (Limit.QUERY_TIMEOUT);
+			GetBalance ();
 			Fire (TRIGGER_COMPLETE);
 		}
 
@@ -110,29 +110,25 @@ namespace Joi.Brain
 
 		private	void GetTicker ()
 		{
-			try {
-				var json = _api.GetTicker (_currency);
-				_market.ticker.Update (
-					float.Parse (json ["high"].ToString ()),
-					0f,
-					float.Parse (json ["low"].ToString ()),
-					0f,
-					float.Parse (json ["volume"].ToString ())
-				);
-			} catch (Exception e) {
-				Console.Error.WriteLine (e.Message);
-				Fire (TRIGGER_STOP);
-			}
+			var json = _api.GetTicker (_currency);
+			_market.ticker.Update (
+				float.Parse (json ["high"].ToString ()),
+				0f,
+				float.Parse (json ["low"].ToString ()),
+				0f,
+				float.Parse (json ["volume"].ToString ())
+			);
 		}
 
 		private	void GetBalance()
 		{
 			var balance = _api.GetBalance ();
-			var balanceDaily = _api.GetDailyBalance ();
-
-			Console.WriteLine ("balance: {0}", balance.ToJson ());
-			Console.WriteLine ("balance(daily): {0}", balanceDaily.ToJson ());
+			var btc = balance ["btc"];
+			var eth = balance ["eth"];
+			var won = balance ["krw"];
+			_market.balance.SetValue (Symbol.BITCOIN, double.Parse (btc ["balance"].ToString ()), double.Parse (btc ["avail"].ToString ()));
+			_market.balance.SetValue (Symbol.ETHEREUM, double.Parse (eth ["balance"].ToString ()), double.Parse (eth ["avail"].ToString ()));
+			_market.balance.SetValue (Symbol.KR_WON, double.Parse (won ["balance"].ToString ()), double.Parse (won ["avail"].ToString ()));
 		}
 	}
 }
-

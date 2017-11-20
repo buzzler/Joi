@@ -5,68 +5,50 @@ namespace Joi.Brain
 {
 	public class TradeLogic : StateMachine
 	{
-		private	const string STATE_BALANCING	= "Balancing";
-		private	const string STATE_SEARCHING	= "Searching";
+		private	const string STATE_BALANCE		= "Balance";
+		private	const string STATE_HISTORY		= "History";
 		private	const string STATE_READY2BUY	= "Ready2Buy";
 		private	const string STATE_READY2SELL	= "Ready2Sell";
-		private	const string STATE_FALLING		= "Falling";
-		private	const string STATE_RISING		= "Rising";
 		private	const string STATE_BUYING		= "Buying";
 		private	const string STATE_SELLING		= "Selling";
 
-		private	const string TRIGGER_SEARCH		= "search";
-		private	const string TRIGGER_READY		= "ready";
-		private	const string TRIGGER_CHECKOUT	= "checkout";
-		private	const string TRIGGER_RISE		= "rise";
-		private	const string TRIGGER_FALL		= "fall";
+		private	const string TRIGGER_NEED_SELL	= "needSell";
+		private	const string TRIGGER_NEED_BUY	= "needBuy";
 		private	const string TRIGGER_COMPLETE	= "complete";
 
 		public TradeLogic (bool logging = true) : base("TradeLogic", 100, logging)
 		{
-			SetFirstState (STATE_BALANCING)
-				.SetupEntry(OnEntryBalance)
-				.SetupExit(OnExitBalance)
-				.SetupLoop(OnLoopBalance)
-				.ConnectTo (TRIGGER_SEARCH, STATE_SEARCHING)
-				.ConnectTo (TRIGGER_READY, STATE_READY2SELL);
-			SetState (STATE_SEARCHING)
-				.SetupEntry(OnEntrySearch)
-				.SetupExit(OnExitSearch)
-				.SetupLoop(OnLoopSearch)
-				.ConnectTo (TRIGGER_READY, STATE_READY2BUY);
+			SetFirstState (STATE_BALANCE)
+				.SetupEntry (OnEntryBalance)
+				.SetupExit (OnExitBalance)
+				.SetupLoop (OnLoopBalance)
+				.ConnectTo (TRIGGER_COMPLETE, STATE_HISTORY);
+			SetState(STATE_HISTORY)
+				.SetupEntry(OnEntryHistory)
+				.SetupExit(OnExitHistory)
+				.SetupLoop(OnLoopHistory)
+				.ConnectTo (TRIGGER_NEED_BUY, STATE_READY2BUY)
+				.ConnectTo (TRIGGER_NEED_SELL, STATE_READY2SELL);
 			SetState (STATE_READY2BUY)
-				.SetupEntry(OnEntryR2B)
-				.SetupExit(OnExitR2B)
-				.SetupLoop(OnLoopR2B)
-				.ConnectTo (TRIGGER_CHECKOUT, STATE_BUYING);
+				.SetupEntry (OnEntryR2B)
+				.SetupExit (OnExitR2B)
+				.SetupLoop (OnLoopR2B)
+				.ConnectTo (TRIGGER_COMPLETE, STATE_BUYING);
 			SetState (STATE_BUYING)
-				.SetupEntry(OnEntryBuy)
-				.SetupExit(OnExitBuy)
-				.SetupLoop(OnLoopBuy)
-				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCING);
+				.SetupEntry (OnEntryBuy)
+				.SetupExit (OnExitBuy)
+				.SetupLoop (OnLoopBuy)
+				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
 			SetState (STATE_READY2SELL)
-				.SetupEntry(OnEntryR2S)
-				.SetupExit(OnExitR2S)
-				.SetupLoop(OnLoopR2S)
-				.ConnectTo (TRIGGER_FALL, STATE_FALLING)
-				.ConnectTo (TRIGGER_RISE, STATE_RISING);
-			SetState (STATE_FALLING)
-				.SetupEntry(OnEntryFall)
-				.SetupExit(OnExitFall)
-				.SetupLoop(OnLoopFall)
-				.ConnectTo (TRIGGER_RISE, STATE_RISING)
-				.ConnectTo (TRIGGER_CHECKOUT, STATE_SELLING);
-			SetState (STATE_RISING)
-				.SetupEntry(OnEntryRise)
-				.SetupExit(OnExitRise)
-				.SetupLoop(OnLoopRise)
-				.ConnectTo (TRIGGER_FALL, STATE_FALLING)
-				.ConnectTo (TRIGGER_CHECKOUT, STATE_SELLING);
+				.SetupEntry (OnEntryR2S)
+				.SetupExit (OnExitR2S)
+				.SetupLoop (OnLoopR2S)
+				.ConnectTo (TRIGGER_COMPLETE, STATE_SELLING);
 			SetState (STATE_SELLING)
-				.SetupEntry(OnEntrySell)
-				.SetupExit(OnExitSell)
-				.SetupLoop(OnLoopSell)
-				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCING);
+				.SetupEntry (OnEntrySell)
+				.SetupExit (OnExitSell)
+				.SetupLoop (OnLoopSell)
+				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
 			Start ();
 		}
 
@@ -75,7 +57,7 @@ namespace Joi.Brain
 			End ();
 		}
 
-		#region 'Balancing' state
+		#region 'Getting Balance' state
 
 		private	void OnEntryBalance()
 		{
@@ -91,17 +73,17 @@ namespace Joi.Brain
 
 		#endregion
 
-		#region 'Searching' state
+		#region 'Getting History' state
 
-		private void OnEntrySearch()
+		private	void OnEntryHistory()
 		{
 		}
 
-		private	void OnLoopSearch()
+		private	void OnLoopHistory()
 		{
 		}
 
-		private	void OnExitSearch()
+		private	void OnExitHistory()
 		{
 		}
 
@@ -166,38 +148,6 @@ namespace Joi.Brain
 		}
 
 		private	void OnExitSell()
-		{
-		}
-
-		#endregion
-
-		#region 'Rising' state
-
-		private	void OnEntryRise()
-		{
-		}
-
-		private	void OnLoopRise()
-		{
-		}
-
-		private	void OnExitRise()
-		{
-		}
-
-		#endregion
-
-		#region 'Falling' state
-
-		private	void OnEntryFall()
-		{
-		}
-
-		private	void OnLoopFall()
-		{
-		}
-
-		private	void OnExitFall()
 		{
 		}
 

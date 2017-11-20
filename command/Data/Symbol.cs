@@ -5,7 +5,9 @@ namespace Joi.Data
 	public enum Symbol
 	{
 		BITCOIN,
-		ETHEREUM
+		ETHEREUM,
+		US_DOLLAR,
+		KR_WON
 	}
 }
 

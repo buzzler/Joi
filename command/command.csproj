@@ -84,6 +84,7 @@
     <Compile Include="Data\Chart\MACDOscillator.cs" />
     <Compile Include="Data\Chart\Candle.cs" />
     <Compile Include="Data\Chart\BollingerBand.cs" />
+    <Compile Include="Data\Balance.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

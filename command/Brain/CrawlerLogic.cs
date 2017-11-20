@@ -77,6 +77,8 @@ namespace Joi.Brain
 
 		#endregion
 
+		#region 'Dump'
+
 		public void DumpAsync(string filename, Action callback)
 		{
 			_dump = filename;
@@ -106,6 +108,8 @@ namespace Joi.Brain
 					_callback ();
 			}
 		}
+
+		#endregion
 	}
 }
 
