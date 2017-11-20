@@ -65,6 +65,10 @@ namespace Joi.Brain
 
 		private	void OnLoopBalance()
 		{
+			var cl = stateMachines ["Coinone"] as CrawlerCoinone;
+			cl.GetBalanceAsync (() => {
+				Fire (TRIGGER_COMPLETE);
+			});
 		}
 
 		private	void OnExitBalance()
@@ -77,10 +81,15 @@ namespace Joi.Brain
 
 		private	void OnEntryHistory()
 		{
+			var balance = (stateMachines ["Coinone"] as CrawlerCoinone).market.balance;
+			Console.WriteLine ("BTC: {0}", balance.GetAvailable(Joi.Data.Symbol.BITCOIN));
+			Console.WriteLine ("ETH: {0}", balance.GetAvailable(Joi.Data.Symbol.ETHEREUM));
+			Console.WriteLine ("KRW: {0}", balance.GetAvailable(Joi.Data.Symbol.KR_WON));
 		}
 
 		private	void OnLoopHistory()
 		{
+			
 		}
 
 		private	void OnExitHistory()

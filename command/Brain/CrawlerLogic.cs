@@ -15,10 +15,16 @@ namespace Joi.Brain
 		protected const string TRIGGER_START = "start";
 		protected Market _market;
 		protected string _dump;
-		protected Action _callback;
+		protected Action _onDump;
+		protected Action _onTicker;
+		protected Action _onBalance;
+		private	object _lock;
+
+		public	Market market { get { return _market; } }
 
 		public CrawlerLogic (string name, int timeout, bool logging = true) : base(name, timeout, logging)
 		{
+			_lock = new object ();
 			AnyState ()
 				.ConnectTo (TRIGGER_STOP, STATE_STOPPED);
 			SetFirstState (STATE_INITIALIZING)
@@ -59,8 +65,27 @@ namespace Joi.Brain
 
 		protected virtual void OnLoopGather()
 		{
-			if (!string.IsNullOrEmpty(_dump))
-				Dump ();
+			lock (_lock) {
+				if (!string.IsNullOrEmpty (_dump)) {
+					Dump ();
+					if (_onDump != null)
+						_onDump ();
+					_onDump = null;
+					Sleep ();
+				}
+				if (_onTicker != null) {
+					GetTicker ();
+					_onTicker ();
+					_onTicker = null;
+					Sleep ();
+				}
+				if (_onBalance != null) {
+					GetBalance ();
+					_onBalance ();
+					_onBalance = null;
+					Sleep ();
+				}
+			}
 		}
 
 		protected abstract void OnExitGather();
@@ -81,8 +106,10 @@ namespace Joi.Brain
 
 		public void DumpAsync(string filename, Action callback)
 		{
-			_dump = filename;
-			_callback = callback;
+			lock (_lock) {
+				_dump = filename;
+				_onDump = callback;
+			}
 		}
 
 		public	void Dump()
@@ -103,10 +130,33 @@ namespace Joi.Brain
 				}
 			} catch (Exception e) {
 				Console.Error.WriteLine (e.Message);
-			} finally {
-				if (_callback != null)
-					_callback ();
 			}
+		}
+
+		#endregion
+
+		#region 'Async API'
+
+		public	void GetTickerAsync(Action callback)
+		{
+			lock (_lock) {
+				_onTicker = callback;
+			}
+		}
+
+		protected virtual void GetTicker ()
+		{
+		}
+
+		public	void GetBalanceAsync(Action callback)
+		{
+			lock (_lock) {
+				_onBalance = callback;
+			}
+		}
+
+		protected virtual void GetBalance()
+		{
 		}
 
 		#endregion

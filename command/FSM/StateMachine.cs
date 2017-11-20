@@ -5,6 +5,10 @@ namespace Joi.FSM
 {
 	public class StateMachine : IDisposable
 	{
+		private	static Dictionary <string, StateMachine> _stateMachines;
+
+		public	static Dictionary <string, StateMachine> stateMachines { get { return _stateMachines; } }
+
 		private	bool _enable;
 		private	bool _log;
 		private	int _timeout;
@@ -20,26 +24,31 @@ namespace Joi.FSM
 		/// </summary>
 		/// <value><c>true</c> if enable; otherwise, <c>false</c>.</value>
 		public	bool enable { get { return _enable; } }
+
 		/// <summary>
 		/// Gets a value indicating whether this <see cref="Joi.FSM.StateMachine"/> is logging.
 		/// </summary>
 		/// <value><c>true</c> if logging; otherwise, <c>false</c>.</value>
 		public	bool logging { get { return _log; } }
+
 		/// <summary>
 		/// Gets the name.
 		/// </summary>
 		/// <value>The name.</value>
 		public	string name { get { return _name; } }
+
 		/// <summary>
 		/// Gets the first state.
 		/// </summary>
 		/// <value>The first state.</value>
 		public	State firstState { get { return _first; } }
+
 		/// <summary>
 		/// Gets the state of the current.
 		/// </summary>
 		/// <value>The state of the current.</value>
 		public	State currentState { get { return _current; } }
+
 		/// <summary>
 		/// Gets the state of the previous.
 		/// </summary>
@@ -49,8 +58,15 @@ namespace Joi.FSM
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Joi.FSM.StateMachine"/> class.
 		/// </summary>
-		public StateMachine (string name = "", int timeout = -1, bool logging = true)
+		public StateMachine (string name, int timeout = -1, bool logging = true)
 		{
+			if (_stateMachines == null)
+				_stateMachines = new Dictionary<string, StateMachine> ();
+			if (_stateMachines.ContainsKey (name))
+				throw new Exception ("duplicated StateMachine: " + name);
+			else
+				_stateMachines.Add (name, this);
+
 			_enable = false;
 			_log = logging;
 			_timeout = timeout;
@@ -62,12 +78,17 @@ namespace Joi.FSM
 			_states = new Dictionary<string, State> ();
 		}
 
+		~StateMachine ()
+		{
+			_stateMachines.Remove (name);
+		}
+
 		/// <summary>
 		/// Sets the first state.
 		/// </summary>
 		/// <returns>The first state.</returns>
 		/// <param name="stateName">State name.</param>
-		public	State SetFirstState(string stateName)
+		public	State SetFirstState (string stateName)
 		{
 			if (_first != null && _states.ContainsKey (_first.name)) {
 				_states.Remove (_first.name);
@@ -82,7 +103,7 @@ namespace Joi.FSM
 		/// </summary>
 		/// <returns>The state.</returns>
 		/// <param name="stateName">State name.</param>
-		public	State SetState(string stateName)
+		public	State SetState (string stateName)
 		{
 			if (_states.ContainsKey (stateName)) {
 				return _states [stateName];
@@ -98,7 +119,7 @@ namespace Joi.FSM
 		/// </summary>
 		/// <returns>The state.</returns>
 		/// <param name="stateName">State name.</param>
-		public	State GetState(string stateName)
+		public	State GetState (string stateName)
 		{
 			if (_states.ContainsKey (stateName))
 				return _states [stateName];
@@ -106,7 +127,7 @@ namespace Joi.FSM
 				return null;
 		}
 
-		public	State AnyState()
+		public	State AnyState ()
 		{
 			return _any;
 		}
@@ -114,7 +135,7 @@ namespace Joi.FSM
 		/// <summary>
 		/// Start this instance.
 		/// </summary>
-		public	void Start()
+		public	void Start ()
 		{
 			if (_first != null) {
 				_current = _first;
@@ -126,7 +147,7 @@ namespace Joi.FSM
 			_enable = true;
 		}
 
-		public	void Run()
+		public	void Run ()
 		{
 			while (_enable) {
 				Loop ();
@@ -134,7 +155,7 @@ namespace Joi.FSM
 			}
 		}
 
-		public	void Sleep(int time = -1)
+		public	void Sleep (int time = -1)
 		{
 			if (time > 0)
 				System.Threading.Thread.Sleep (time);
@@ -145,7 +166,7 @@ namespace Joi.FSM
 		/// <summary>
 		/// Loop this instance.
 		/// </summary>
-		public	void Loop()
+		public	void Loop ()
 		{
 			if (!_enable)
 				return;
@@ -160,7 +181,7 @@ namespace Joi.FSM
 		/// Fire the specified triggerName.
 		/// </summary>
 		/// <param name="triggerName">Trigger name.</param>
-		public	void Fire(string triggerName)
+		public	void Fire (string triggerName)
 		{
 			State nextState = null;
 			if (_current != null && _current.HasTrigger (triggerName)) {
@@ -179,7 +200,7 @@ namespace Joi.FSM
 		/// <summary>
 		/// End this instance.
 		/// </summary>
-		public	void End()
+		public	void End ()
 		{
 			if (_current != null)
 				_current.FireOnExit ();
@@ -197,7 +218,7 @@ namespace Joi.FSM
 		/// <see cref="Dispose"/> method leaves the <see cref="Joi.FSM.StateMachine"/> in an unusable state. After calling
 		/// <see cref="Dispose"/>, you must release all references to the <see cref="Joi.FSM.StateMachine"/> so the garbage
 		/// collector can reclaim the memory that the <see cref="Joi.FSM.StateMachine"/> was occupying.</remarks>
-		public void Dispose()
+		public void Dispose ()
 		{
 			End ();
 			_first = null;

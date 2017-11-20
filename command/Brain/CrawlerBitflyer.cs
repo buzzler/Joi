@@ -9,8 +9,6 @@ namespace Joi.Brain
 	{
 		private	Api _api;
 		private	string _productCode;
-		private	float _ratio;
-		private	float _count;
 
 		public CrawlerBitflyer (Symbol symbol, bool logging = true) : base ("Bitflyer", Joi.Bitflyer.Limit.QUERY_TIMEOUT, logging)
 		{
@@ -18,8 +16,6 @@ namespace Joi.Brain
 			_market = new Market (name, TimeInterval.DAY_1);
 			_market.SetAnalyzer (TimeInterval.MINUTE_1, TimeInterval.HOUR_2);
 			_market.SetAnalyzer (TimeInterval.MINUTE_15, TimeInterval.DAY_1);
-			_ratio = 4;
-			_count = 0;
 
 			switch (symbol) {
 			case Symbol.BITCOIN:
@@ -38,8 +34,6 @@ namespace Joi.Brain
 		protected override void OnLoopInit ()
 		{
 			GetTrade (10000);
-			System.Threading.Thread.Sleep (Limit.QUERY_TIMEOUT);
-			GetTicker ();
 			Fire (TRIGGER_COMPLETE);
 		}
 
@@ -54,12 +48,7 @@ namespace Joi.Brain
 		protected override void OnLoopGather ()
 		{
 			base.OnLoopGather ();
-			_count = (_count + 1) % _ratio;
-			if (_count < 1)
-				GetTicker ();
-			else
-				GetTrade (-1, _market.GetLastId ());
-//			var json2 = _api.GetOrderBook ();
+			GetTrade (-1, _market.GetLastId ());
 		}
 
 		protected override void OnExitGather ()
@@ -102,7 +91,7 @@ namespace Joi.Brain
 			_market.UpdateChart ();
 		}
 
-		private	void GetTicker ()
+		protected override void GetTicker ()
 		{
 			try {
 				var ticker = _api.GetTicker (_productCode);

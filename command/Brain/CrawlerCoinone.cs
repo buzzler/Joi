@@ -9,8 +9,6 @@ namespace Joi.Brain
 	{
 		private	Api _api;
 		private	string _currency;
-		private	float _ratio;
-		private	float _count;
 
 		public CrawlerCoinone (Symbol symbol, bool logging = true) : base ("Coinone", Joi.Coinone.Limit.QUERY_TIMEOUT, logging)
 		{
@@ -18,8 +16,6 @@ namespace Joi.Brain
 			_market = new Market (name, TimeInterval.DAY_1);
 			_market.SetAnalyzer (TimeInterval.MINUTE_1, TimeInterval.HOUR_2);
 			_market.SetAnalyzer (TimeInterval.MINUTE_15, TimeInterval.DAY_1);
-			_ratio = 4;
-			_count = 0;
 
 			// convert symbol
 			switch (symbol) {
@@ -39,10 +35,6 @@ namespace Joi.Brain
 		protected override void OnLoopInit ()
 		{
 			GetTrade ("day");
-			System.Threading.Thread.Sleep (Limit.QUERY_TIMEOUT);
-			GetTicker ();
-			System.Threading.Thread.Sleep (Limit.QUERY_TIMEOUT);
-			GetBalance ();
 			Fire (TRIGGER_COMPLETE);
 		}
 
@@ -57,12 +49,7 @@ namespace Joi.Brain
 		protected override void OnLoopGather ()
 		{
 			base.OnLoopGather ();
-			_count = (_count + 1) % _ratio;
-			if (_count < 1)
-				GetTicker ();
-			else
-				GetTrade ();
-//			var json = _api.GetOrderbook ("btc");
+			GetTrade ();
 		}
 
 		protected override void OnExitGather ()
@@ -108,7 +95,7 @@ namespace Joi.Brain
 			_market.UpdateChart ();
 		}
 
-		private	void GetTicker ()
+		protected override void GetTicker ()
 		{
 			var json = _api.GetTicker (_currency);
 			_market.ticker.Update (
@@ -120,7 +107,7 @@ namespace Joi.Brain
 			);
 		}
 
-		private	void GetBalance()
+		protected override void GetBalance()
 		{
 			var balance = _api.GetBalance ();
 			var btc = balance ["btc"];
