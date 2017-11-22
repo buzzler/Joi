@@ -71,9 +71,11 @@ namespace Joi.Data.Chart
 
 		public	void AssignCandle (List<Trade> trades)
 		{
+			// resetting
 			for (int i = 0; i < _count; i++)
 				_candles [i].Reset ();
 
+			// assigning
 			var totalTrade = trades.Count;
 			var lastTrade = trades [totalTrade - 1];
 			var startTime = lastTrade.timestamp - (int)_limit;
@@ -87,6 +89,33 @@ namespace Joi.Data.Chart
 				if (index >= _count)
 					index = _count - 1;
 				_candles [index].Assign (trade);
+			}
+
+			// check empty candles (no trades)
+			for (int i = 1; i < _count - 1; i++) {
+				var current = _candles [i];
+				if (current.valid)
+					continue;
+
+				var i_before = i - 1;
+				var i_after = i + 1;
+				while (i_before >= 0) {
+					if (_candles [i_before].valid)
+						break;
+					i_before--;
+				}
+				if (i_before < 0)
+					continue;
+				var before = _candles [i_before];
+				while (i_after < _count) {
+					if (_candles [i_after].valid)
+						break;
+					i_after++;
+				}
+				if (i_after >= _count)
+					continue;
+				var after = _candles [i_after];
+				current.Average (before, after);
 			}
 
 			AssignMA ();

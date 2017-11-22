@@ -72,6 +72,22 @@ namespace Joi.Data.Chart
 			_count++;
 			_valid = true;
 		}
+
+		public	void Average (Candle before, Candle after)
+		{
+			if (_valid)
+				return;
+			if (!before.valid || !after.valid)
+				return;
+
+			_open = before.close;
+			_close = after.open;
+			_high = (before.high + after.high) / 2f;
+			_low = (before.low + after.low) / 2f;
+			_amount = 0f;
+			_count = 0;
+			_valid = true;
+		}
 	}
 }
 

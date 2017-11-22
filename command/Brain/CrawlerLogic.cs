@@ -7,6 +7,9 @@ namespace Joi.Brain
 {
 	public abstract class CrawlerLogic : StateMachine
 	{
+		public	const string COINONE = "Coinone";
+		public	const string BITFLYER = "Bitflyer";
+		public	const string BITFINEX = "Bitfinex";
 		protected const string STATE_INITIALIZING = "Initializing";
 		protected const string STATE_GATHERING = "Gathering";
 		protected const string STATE_STOPPED = "Stopped";
@@ -131,6 +134,15 @@ namespace Joi.Brain
 			} catch (Exception e) {
 				Console.Error.WriteLine (e.Message);
 			}
+		}
+
+		#endregion
+
+		#region 'Status'
+
+		public	string Status()
+		{
+			return _market.Status ();
 		}
 
 		#endregion

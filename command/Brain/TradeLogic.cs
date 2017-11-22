@@ -1,5 +1,6 @@
 ﻿using System;
 using Joi.FSM;
+using Joi.Data;
 
 namespace Joi.Brain
 {
@@ -11,22 +12,29 @@ namespace Joi.Brain
 		private	const string STATE_READY2SELL	= "Ready2Sell";
 		private	const string STATE_BUYING		= "Buying";
 		private	const string STATE_SELLING		= "Selling";
+		private	const string STATE_IDLE			= "Idle";
 
 		private	const string TRIGGER_NEED_SELL	= "needSell";
 		private	const string TRIGGER_NEED_BUY	= "needBuy";
 		private	const string TRIGGER_COMPLETE	= "complete";
+		private	const string TRIGGER_ERROR		= "error";
 
-		public TradeLogic (bool logging = true) : base("TradeLogic", 100, logging)
+		private	Symbol _symbol;
+
+		public TradeLogic (Symbol symbol, bool logging = true) : base ("TradeLogic", 100, logging)
 		{
+			_symbol = symbol;
 			SetFirstState (STATE_BALANCE)
 				.SetupEntry (OnEntryBalance)
 				.SetupExit (OnExitBalance)
 				.SetupLoop (OnLoopBalance)
 				.ConnectTo (TRIGGER_COMPLETE, STATE_HISTORY);
-			SetState(STATE_HISTORY)
-				.SetupEntry(OnEntryHistory)
-				.SetupExit(OnExitHistory)
-				.SetupLoop(OnLoopHistory)
+			AnyState ()
+				.ConnectTo (TRIGGER_ERROR, STATE_IDLE);
+			SetState (STATE_HISTORY)
+				.SetupEntry (OnEntryHistory)
+				.SetupExit (OnExitHistory)
+				.SetupLoop (OnLoopHistory)
 				.ConnectTo (TRIGGER_NEED_BUY, STATE_READY2BUY)
 				.ConnectTo (TRIGGER_NEED_SELL, STATE_READY2SELL);
 			SetState (STATE_READY2BUY)
@@ -49,29 +57,34 @@ namespace Joi.Brain
 				.SetupExit (OnExitSell)
 				.SetupLoop (OnLoopSell)
 				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
+			SetState (STATE_IDLE)
+				.SetupEntry (OnEntryIdle)
+				.SetupExit (OnExitIdle)
+				.SetupLoop (OnLoopIdle)
+				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
 			Start ();
 		}
 
-		~TradeLogic()
+		~TradeLogic ()
 		{
 			End ();
 		}
 
 		#region 'Getting Balance' state
 
-		private	void OnEntryBalance()
+		private	void OnEntryBalance ()
 		{
 		}
 
-		private	void OnLoopBalance()
+		private	void OnLoopBalance ()
 		{
-			var cl = stateMachines ["Coinone"] as CrawlerCoinone;
+			var cl = stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone;
 			cl.GetBalanceAsync (() => {
 				Fire (TRIGGER_COMPLETE);
 			});
 		}
 
-		private	void OnExitBalance()
+		private	void OnExitBalance ()
 		{
 		}
 
@@ -79,20 +92,26 @@ namespace Joi.Brain
 
 		#region 'Getting History' state
 
-		private	void OnEntryHistory()
+		private	void OnEntryHistory ()
 		{
-			var balance = (stateMachines ["Coinone"] as CrawlerCoinone).market.balance;
-			Console.WriteLine ("BTC: {0}", balance.GetAvailable(Joi.Data.Symbol.BITCOIN));
-			Console.WriteLine ("ETH: {0}", balance.GetAvailable(Joi.Data.Symbol.ETHEREUM));
-			Console.WriteLine ("KRW: {0}", balance.GetAvailable(Joi.Data.Symbol.KR_WON));
 		}
 
-		private	void OnLoopHistory()
+		private	void OnLoopHistory ()
 		{
-			
+			var crawler = stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone;
+			var balance = crawler.market.balance;
+			var available = balance.GetAvailable (_symbol);
+			var cash = balance.GetAvailable (Symbol.KR_WON);
+
+			if (available > 0)
+				Fire (TRIGGER_NEED_SELL);
+			else if (cash > 0)
+				Fire (TRIGGER_NEED_BUY);
+			else
+				Fire (TRIGGER_ERROR);
 		}
 
-		private	void OnExitHistory()
+		private	void OnExitHistory ()
 		{
 		}
 
@@ -100,15 +119,16 @@ namespace Joi.Brain
 
 		#region 'Ready2Buy' state
 
-		private	void OnEntryR2B()
+		private	void OnEntryR2B ()
+		{
+			Console.WriteLine ("Ready to BUY");
+		}
+
+		private	void OnLoopR2B ()
 		{
 		}
 
-		private	void OnLoopR2B()
-		{
-		}
-
-		private	void OnExitR2B()
+		private	void OnExitR2B ()
 		{
 		}
 
@@ -116,15 +136,15 @@ namespace Joi.Brain
 
 		#region 'Buying' state
 
-		private	void OnEntryBuy()
+		private	void OnEntryBuy ()
 		{
 		}
 
-		private	void OnLoopBuy()
+		private	void OnLoopBuy ()
 		{
 		}
 
-		private	void OnExitBuy()
+		private	void OnExitBuy ()
 		{
 		}
 
@@ -132,15 +152,16 @@ namespace Joi.Brain
 
 		#region 'Ready2Sell' state
 
-		private	void OnEntryR2S()
+		private	void OnEntryR2S ()
+		{
+			Console.WriteLine ("Ready to SELL");
+		}
+
+		private void OnLoopR2S ()
 		{
 		}
 
-		private void OnLoopR2S()
-		{
-		}
-
-		private void OnExitR2S()
+		private void OnExitR2S ()
 		{
 		}
 
@@ -148,15 +169,31 @@ namespace Joi.Brain
 
 		#region 'Selling' state
 
-		private	void OnEntrySell()
+		private	void OnEntrySell ()
 		{
 		}
 
-		private	void OnLoopSell()
+		private	void OnLoopSell ()
 		{
 		}
 
-		private	void OnExitSell()
+		private	void OnExitSell ()
+		{
+		}
+
+		#endregion
+
+		#region 'Idle' state
+
+		private	void OnEntryIdle ()
+		{
+		}
+
+		private	void OnLoopIdle ()
+		{
+		}
+
+		private	void OnExitIdle ()
 		{
 		}
 

@@ -170,6 +170,20 @@ namespace Joi.Data
 			foreach (var analyzer in _analyzers.Values)
 				analyzer.Dump (command);
 		}
+
+		public	string Status()
+		{
+			var sb = new StringBuilder ();
+			sb.AppendFormat ("[{0}]", name);
+			sb.AppendLine ();
+			sb.AppendFormat ("-[balance]");
+			sb.AppendLine ();
+			sb.Append (_balance.Status ());
+			sb.AppendFormat ("-[ticker]");
+			sb.AppendLine ();
+			sb.Append (_ticker.Status ());
+			return sb.ToString ();
+		}
 	}
 }
 

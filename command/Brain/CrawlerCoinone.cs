@@ -10,7 +10,7 @@ namespace Joi.Brain
 		private	Api _api;
 		private	string _currency;
 
-		public CrawlerCoinone (Symbol symbol, bool logging = true) : base ("Coinone", Joi.Coinone.Limit.QUERY_TIMEOUT, logging)
+		public CrawlerCoinone (Symbol symbol, bool logging = true) : base (COINONE, Joi.Coinone.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
 			_market = new Market (name, TimeInterval.DAY_1);

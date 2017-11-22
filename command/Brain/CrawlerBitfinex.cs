@@ -12,7 +12,7 @@ namespace Joi.Brain
 		private	Api _api;
 		private	string _symbol;
 
-		public	CrawlerBitfinex (Symbol symbol, bool logging = true) : base ("Bitfinex", Joi.Bitfinex.Limit.QUERY_TIMEOUT, logging)
+		public	CrawlerBitfinex (Symbol symbol, bool logging = true) : base (BITFINEX, Joi.Bitfinex.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
 			_market = new Market (name, TimeInterval.DAY_2);

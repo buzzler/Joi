@@ -10,7 +10,7 @@ namespace Joi.Brain
 		private	Api _api;
 		private	string _productCode;
 
-		public CrawlerBitflyer (Symbol symbol, bool logging = true) : base ("Bitflyer", Joi.Bitflyer.Limit.QUERY_TIMEOUT, logging)
+		public CrawlerBitflyer (Symbol symbol, bool logging = true) : base (BITFLYER, Joi.Bitflyer.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
 			_market = new Market (name, TimeInterval.DAY_1);

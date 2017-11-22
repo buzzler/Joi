@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Joi.Data
 {
@@ -36,6 +37,18 @@ namespace Joi.Data
 			if (_wallet.ContainsKey (symbol))
 				return _wallet [symbol].Item1;
 			return 0;
+		}
+
+		public	string Status(bool indent = true)
+		{
+			var sb = new StringBuilder ();
+			var itr = _wallet.GetEnumerator ();
+			while (itr.MoveNext ()) {
+				if (indent)	sb.Append ("\t");
+				sb.AppendFormat ("{0}: {1} available", itr.Current.Key, itr.Current.Value.Item2);
+				sb.AppendLine ();
+			}
+			return sb.ToString ();
 		}
 	}
 }

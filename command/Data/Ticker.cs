@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Joi.Data
 {
@@ -36,6 +37,20 @@ namespace Joi.Data
 			_lastLowestAsk = lowPrice;
 			_lastLowestSize = lowAmount;
 			_volume = volume;
+		}
+
+		public	string Status(bool indent = true)
+		{
+			var sb = new StringBuilder ();
+			if (indent)
+				sb.Append ("\t");
+			sb.AppendFormat ("Highest Bid: {0} ({1})", _lastHighestBid, _lastHighestSize);
+			sb.AppendLine ();
+			if (indent)
+				sb.Append ("\t");
+			sb.AppendFormat ("Lowest Ask: {0} ({1})", _lastLowestAsk, _lastLowestSize);
+			sb.AppendLine ();
+			return sb.ToString ();
 		}
 	}
 }

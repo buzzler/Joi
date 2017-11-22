@@ -11,23 +11,18 @@ namespace Joi.Brain
 	public	class AppLogic : StateMachine
 	{
 		private	const string STATE_INITIALIZING	= "Initializing";
-		private	const string STATE_STOPPED		= "Stopped";
-		private	const string STATE_RUNNING		= "Running";
-
+		private	const string STATE_STOPPED = "Stopped";
+		private	const string STATE_RUNNING = "Running";
 		private const string TRIGGER_COMPLETE	= "complete";
-		private	const string TRIGGER_START		= "start";
-		private	const string TRIGGER_STOP		= "stop";
-
-		private	const string TRADE		= "trade";
-		private	const string BITFINEX	= "bitfinex";
-		private	const string BITFLYER	= "bitflyer";
-		private	const string COINONE	= "coinone";
+		private	const string TRIGGER_START = "start";
+		private	const string TRIGGER_STOP = "stop";
+		private	const string TRADE = "trade";
 
 		private	Symbol _symbol = Symbol.BITCOIN;
 		private	Dictionary<string, StateMachine> _stateMachines;
 		private	Dictionary<string, Thread> _threads;
 
-		public	AppLogic(bool logging = true) : base("AppLogic", 1000, logging)
+		public	AppLogic (bool logging = true) : base ("AppLogic", 1000, logging)
 		{
 			this.AnyState ()
 				.ConnectTo (TRIGGER_STOP, STATE_STOPPED);
@@ -48,32 +43,32 @@ namespace Joi.Brain
 			Start ();
 		}
 
-		~AppLogic()
+		~AppLogic ()
 		{
 			End ();
 		}
 
 		#region 'Initializing' state
 
-		private	void OnEntryInit()
+		private	void OnEntryInit ()
 		{
 			_stateMachines = new Dictionary<string, StateMachine> () {
-				{ TRADE, new TradeLogic (logging) },
-				{ BITFINEX, new CrawlerBitfinex (_symbol, logging) },
-				{ BITFLYER, new CrawlerBitflyer (_symbol, logging) },
-				{ COINONE, new CrawlerCoinone (_symbol, logging) }
+				{ TRADE, new TradeLogic (_symbol, logging) },
+				{ CrawlerLogic.BITFINEX, new CrawlerBitfinex (_symbol, logging) },
+				{ CrawlerLogic.BITFLYER, new CrawlerBitflyer (_symbol, logging) },
+				{ CrawlerLogic.COINONE, new CrawlerCoinone (_symbol, logging) }
 			};
 			_threads = new Dictionary<string, Thread> () {
 				{ TRADE, new Thread (_stateMachines [TRADE].Run) },
-				{ BITFINEX, new Thread (_stateMachines [BITFINEX].Run) },
-				{ BITFLYER, new Thread (_stateMachines [BITFLYER].Run) },
-				{ COINONE, new Thread (_stateMachines [COINONE].Run) }
+				{ CrawlerLogic.BITFINEX, new Thread (_stateMachines [CrawlerLogic.BITFINEX].Run) },
+				{ CrawlerLogic.BITFLYER, new Thread (_stateMachines [CrawlerLogic.BITFLYER].Run) },
+				{ CrawlerLogic.COINONE, new Thread (_stateMachines [CrawlerLogic.COINONE].Run) }
 			};
 			foreach (var thread in _threads.Values)
 				thread.Start ();
 		}
 
-		private	void OnLoopInit()
+		private	void OnLoopInit ()
 		{
 			bool alive = true;
 			foreach (var thread in _threads.Values)
@@ -82,7 +77,7 @@ namespace Joi.Brain
 				Fire (TRIGGER_COMPLETE);
 		}
 
-		private	void OnExitInit()
+		private	void OnExitInit ()
 		{
 		}
 
@@ -90,13 +85,13 @@ namespace Joi.Brain
 
 		#region 'Stopped' state
 
-		private	void OnEntryStop()
+		private	void OnEntryStop ()
 		{
 			foreach (var sm in _stateMachines.Values)
 				sm.End ();
 		}
 
-		private	void OnLoopStop()
+		private	void OnLoopStop ()
 		{
 			bool alive = false;
 			foreach (var thread in _threads.Values)
@@ -105,7 +100,7 @@ namespace Joi.Brain
 				End ();
 		}
 
-		private	void OnExitStop()
+		private	void OnExitStop ()
 		{
 			_stateMachines = null;
 			_threads = null;
@@ -116,16 +111,16 @@ namespace Joi.Brain
 
 		#region 'Running' state
 
-		private	void OnEntryRun()
+		private	void OnEntryRun ()
 		{
 		}
 
-		private	void OnLoopRun()
+		private	void OnLoopRun ()
 		{
 			PrintMainMenu ();
 		}
 
-		private	void OnExitRun()
+		private	void OnExitRun ()
 		{
 		}
 
@@ -133,11 +128,13 @@ namespace Joi.Brain
 
 		#region commandline parser
 
-		private	void PrintMainMenu()
+		private	void PrintMainMenu ()
 		{
 			Console.Clear ();
 			Console.WriteLine ("1. Backup to Database");
-			Console.WriteLine ("2. Exit");
+			Console.WriteLine ("2. Status");
+			Console.WriteLine ("3. Exit");
+			Console.WriteLine ();
 			Console.Write ("> ");
 			Console.CursorVisible = true;
 			string input = Console.ReadLine ();
@@ -148,6 +145,9 @@ namespace Joi.Brain
 				OnSelectDumpToFiles ();
 				break;
 			case "2":
+				OnSelectStatus ();
+				break;
+			case "3":
 				OnSelectExit ();
 				break;
 			}
@@ -155,7 +155,7 @@ namespace Joi.Brain
 
 		private	bool _dumpped;
 
-		private	void OnSelectDumpToFiles()
+		private	void OnSelectDumpToFiles ()
 		{
 			var filename = string.Format ("{0}.db", DateTime.Now.ToString ("yyyy-MM-dd_hh.mm.ss"));
 			var total = _stateMachines.Count;
@@ -187,7 +187,20 @@ namespace Joi.Brain
 			Thread.Sleep (2000);
 		}
 
-		private	void OnSelectExit()
+		private	void OnSelectStatus ()
+		{
+			Console.Clear ();
+			foreach (var sm in _stateMachines.Values) {
+				if (sm is CrawlerLogic) {
+					var crawler = sm as CrawlerLogic;
+					Console.WriteLine (crawler.Status ());
+				}
+			}
+			Console.WriteLine("Press any key to return...");
+			Console.Read ();
+		}
+
+		private	void OnSelectExit ()
 		{
 			Console.Clear ();
 			Console.WriteLine ("exiting..");
