@@ -24,22 +24,21 @@ namespace Joi.Brain
 
 		public	AppLogic (bool logging = true) : base ("AppLogic", 1000, logging)
 		{
-			this.AnyState ()
+			AnyState ()
 				.ConnectTo (TRIGGER_STOP, STATE_STOPPED);
-			this.SetFirstState (STATE_INITIALIZING)
+			SetFirstState (STATE_INITIALIZING)
 				.SetupEntry (OnEntryInit)
 				.SetupExit (OnExitInit)
 				.SetupLoop (OnLoopInit)
 				.ConnectTo (TRIGGER_COMPLETE, STATE_RUNNING);
-			this.SetState (STATE_RUNNING)
+			SetState (STATE_RUNNING)
 				.SetupEntry (OnEntryRun)
 				.SetupExit (OnExitRun)
 				.SetupLoop (OnLoopRun);
-			this.SetState (STATE_STOPPED)
+			SetState (STATE_STOPPED)
 				.SetupEntry (OnEntryStop)
 				.SetupExit (OnExitStop)
-				.SetupLoop (OnLoopStop)
-				.ConnectTo (TRIGGER_START, STATE_INITIALIZING);
+				.SetupLoop (OnLoopStop);
 			Start ();
 		}
 
@@ -130,15 +129,16 @@ namespace Joi.Brain
 
 		private	void PrintMainMenu ()
 		{
-			Console.Clear ();
-			Console.WriteLine ("1. Backup to Database");
-			Console.WriteLine ("2. Status");
-			Console.WriteLine ("3. Exit");
-			Console.WriteLine ();
-			Console.Write ("> ");
-			Console.CursorVisible = true;
-			string input = Console.ReadLine ();
-			Console.CursorVisible = false;
+			ConsoleIO.Clear ();
+			ConsoleIO.WriteLine ("1. Backup to Database");
+			ConsoleIO.WriteLine ("2. Status");
+			ConsoleIO.WriteLine ("3. Log");
+			ConsoleIO.WriteLine ("4. Exit");
+			ConsoleIO.WriteLine ();
+			ConsoleIO.Write ("> ");
+			ConsoleIO.ShowCursor ();
+			string input = ConsoleIO.ReadLine ();
+			ConsoleIO.HideCursor ();
 
 			switch (input) {
 			case "1":
@@ -148,6 +148,9 @@ namespace Joi.Brain
 				OnSelectStatus ();
 				break;
 			case "3":
+				OnSelectLog ();
+				break;
+			case "4":
 				OnSelectExit ();
 				break;
 			}
@@ -161,50 +164,57 @@ namespace Joi.Brain
 			var total = _stateMachines.Count;
 			var current = 0;
 
-			Console.Clear ();
+			ConsoleIO.Clear ();
 			if (File.Exists (filename)) {
-				Console.WriteLine ("delete a exist file: {0}", filename);
+				ConsoleIO.WriteLine ("delete a exist file: {0}", filename);
 				File.Delete (filename);
 			}
-			Console.WriteLine ("processing.. {0}", filename);
+			ConsoleIO.WriteLine ("processing.. {0}", filename);
 			foreach (var sm in _stateMachines.Values) {
 				current++;
 				if (sm is CrawlerLogic) {
 					_dumpped = false;
 					var crawler = sm as CrawlerLogic;
-					Console.WriteLine ("({1}/{2}) backup.. {0}", crawler.name, current, total);
+					ConsoleIO.WriteLine ("({1}/{2}) backup.. {0}", crawler.name, current, total);
 					crawler.DumpAsync (filename, () => {
 						_dumpped = true;
 					});
 					while (!_dumpped)
 						Thread.Sleep (1000);
 				} else {
-					Console.WriteLine ("({1}/{2}) pass.. {0}", sm.name, current, total);
+					ConsoleIO.WriteLine ("({1}/{2}) pass.. {0}", sm.name, current, total);
 				}
 			}
-			Console.WriteLine ("done");
+			ConsoleIO.WriteLine ("done");
 			Process.Start (filename);
 			Thread.Sleep (2000);
 		}
 
 		private	void OnSelectStatus ()
 		{
-			Console.Clear ();
+			ConsoleIO.Clear ();
 			foreach (var sm in _stateMachines.Values) {
 				if (sm is CrawlerLogic) {
 					var crawler = sm as CrawlerLogic;
-					Console.WriteLine (crawler.Status ());
+					ConsoleIO.WriteLine (crawler.Status ());
 				}
 			}
-			Console.WriteLine("Press any key to return...");
-			Console.Read ();
+			ConsoleIO.WriteLine ("Press any key to return...");
+			ConsoleIO.Read ();
+		}
+
+		private	void OnSelectLog ()
+		{
+			ConsoleIO.Clear ();
+			ConsoleIO.WriteLine ("Press any key to return...");
+			ConsoleIO.Read ();
 		}
 
 		private	void OnSelectExit ()
 		{
-			Console.Clear ();
-			Console.WriteLine ("exiting..");
-			Console.CursorVisible = true;
+			ConsoleIO.Clear ();
+			ConsoleIO.WriteLine ("exiting..");
+			ConsoleIO.ShowCursor ();
 			Fire (TRIGGER_STOP);
 		}
 

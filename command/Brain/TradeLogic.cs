@@ -121,7 +121,7 @@ namespace Joi.Brain
 
 		private	void OnEntryR2B ()
 		{
-			Console.WriteLine ("Ready to BUY");
+			ConsoleIO.WriteLine ("Ready to BUY");
 		}
 
 		private	void OnLoopR2B ()
@@ -154,7 +154,7 @@ namespace Joi.Brain
 
 		private	void OnEntryR2S ()
 		{
-			Console.WriteLine ("Ready to SELL");
+			ConsoleIO.WriteLine ("Ready to SELL");
 		}
 
 		private void OnLoopR2S ()

@@ -103,7 +103,7 @@ namespace Joi.Brain
 					float.Parse (ticker ["volume"].ToString ())
 				);
 			} catch (Exception e) {
-				Console.Error.WriteLine (e.Message);
+				ConsoleIO.Error (e.Message);
 				Fire (TRIGGER_STOP);
 			}
 		}

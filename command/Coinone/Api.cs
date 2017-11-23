@@ -296,11 +296,11 @@ namespace Joi.Coinone
 			var errorCode = int.Parse (json ["errorCode"].ToString ());
 
 			if (!_errorCode.ContainsKey (errorCode)) {
-				Console.Error.WriteLine ("uknown errorCode: {0}", errorCode);
+				ConsoleIO.Error("uknown errorCode: {0}", errorCode);
 			} else {
 				var errorMessage = _errorCode [errorCode];
 				if (!string.IsNullOrEmpty (errorMessage))
-					Console.Error.WriteLine (errorMessage);
+					ConsoleIO.Error (errorMessage);
 			}
 			return json;
 		}

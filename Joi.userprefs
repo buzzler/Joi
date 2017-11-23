@@ -1,12 +1,12 @@
 ﻿<Properties StartupItem="command/command.csproj" RefactoringSettings.EnableRefactorings="True">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="command/Brain/TradeLogic.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="command/ConsoleIO.cs">
     <Files>
-      <File FileName="command/Data/Balance.cs" Line="12" Column="30" />
-      <File FileName="command/Data/Market.cs" Line="18" Column="41" />
-      <File FileName="command/Brain/CrawlerCoinone.cs" Line="13" Column="78" />
-      <File FileName="command/Brain/CrawlerLogic.cs" Line="23" Column="51" />
-      <File FileName="command/Brain/TradeLogic.cs" Line="92" Column="4" />
+      <File FileName="command/ConsoleIO.cs" Line="170" Column="4" />
+      <File FileName="command/Brain/TradeLogic.cs" Line="7" Column="37" />
+      <File FileName="command/FSM/StateMachine.cs" Line="32" Column="18" />
+      <File FileName="command/FSM/State.cs" Line="94" Column="25" />
+      <File FileName="command/Brain/AppLogic.cs" Line="208" Column="23" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

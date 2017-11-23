@@ -134,7 +134,7 @@ namespace Joi.Brain
 				);
 				_market.UpdateChart ();
 			} catch (Exception e) {
-				Console.Error.WriteLine (e.Message);
+				ConsoleIO.Error (e.Message);
 				Fire (TRIGGER_STOP);
 			}
 		}
@@ -157,7 +157,7 @@ namespace Joi.Brain
 					float.Parse (json [8].ToString ())
 				);
 			} catch (Exception e) {
-				Console.Error.WriteLine (e.Message);
+				ConsoleIO.Error (e.Message);
 				Fire (TRIGGER_STOP);
 			}
 		}

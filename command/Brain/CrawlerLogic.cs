@@ -132,7 +132,7 @@ namespace Joi.Brain
 					}
 				}
 			} catch (Exception e) {
-				Console.Error.WriteLine (e.Message);
+				ConsoleIO.Error (e.Message);
 			}
 		}
 

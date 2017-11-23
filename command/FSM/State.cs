@@ -91,7 +91,7 @@ namespace Joi.FSM
 		public	void FireOnEntry()
 		{
 			if (_onEntry != null) {
-				if (stateMachine.logging) Console.WriteLine ("{0}::{1}::OnEntry", stateMachine.name, name);
+				if (stateMachine.logging) ConsoleIO.LogLine ("{0}::{1}::OnEntry", stateMachine.name, name);
 				_onEntry ();
 			}
 		}
@@ -113,7 +113,7 @@ namespace Joi.FSM
 		public	void FireOnExit()
 		{
 			if (_onExit != null) {
-				if (stateMachine.logging) Console.WriteLine ("{0}::{1}::OnExit", stateMachine.name, name);
+				if (stateMachine.logging) ConsoleIO.LogLine ("{0}::{1}::OnExit", stateMachine.name, name);
 				_onExit ();
 			}
 		}
