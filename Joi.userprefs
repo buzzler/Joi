@@ -1,16 +1,14 @@
-﻿<Properties StartupItem="command/command.csproj" RefactoringSettings.EnableRefactorings="True">
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="command/ConsoleIO.cs">
+﻿<Properties RefactoringSettings.EnableRefactorings="True" StartupConfiguration="{95017E2B-1594-4EF3-A7BA-551FCAFAC1B5}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="command/Data/Chart/Analyzer.cs">
     <Files>
-      <File FileName="command/ConsoleIO.cs" Line="170" Column="4" />
-      <File FileName="command/Brain/TradeLogic.cs" Line="7" Column="37" />
-      <File FileName="command/FSM/StateMachine.cs" Line="32" Column="18" />
-      <File FileName="command/FSM/State.cs" Line="94" Column="25" />
-      <File FileName="command/Brain/AppLogic.cs" Line="208" Column="23" />
+      <File FileName="command/Data/Chart/Analyzer.cs" Line="25" Column="4" />
     </Files>
   </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.command PreferredExecutionTarget="MonoDevelop.Default" />
+  <MultiItemStartupConfigurations />
 </Properties>

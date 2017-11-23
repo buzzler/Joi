@@ -4,200 +4,231 @@ using Joi.Data;
 
 namespace Joi.Brain
 {
-	public class TradeLogic : StateMachine
-	{
-		private	const string STATE_BALANCE		= "Balance";
-		private	const string STATE_HISTORY		= "History";
-		private	const string STATE_READY2BUY	= "Ready2Buy";
-		private	const string STATE_READY2SELL	= "Ready2Sell";
-		private	const string STATE_BUYING		= "Buying";
-		private	const string STATE_SELLING		= "Selling";
-		private	const string STATE_IDLE			= "Idle";
+    public class TradeLogic : StateMachine
+    {
+        private const string STATE_INIT = "Init";
+        private const string STATE_BALANCE = "Balance";
+        private const string STATE_HISTORY = "History";
+        private const string STATE_READY2BUY = "Ready2Buy";
+        private const string STATE_READY2SELL = "Ready2Sell";
+        private const string STATE_BUYING = "Buying";
+        private const string STATE_SELLING = "Selling";
+        private const string STATE_IDLE = "Idle";
 
-		private	const string TRIGGER_NEED_SELL	= "needSell";
-		private	const string TRIGGER_NEED_BUY	= "needBuy";
-		private	const string TRIGGER_COMPLETE	= "complete";
-		private	const string TRIGGER_ERROR		= "error";
+        private const string TRIGGER_NEED_SELL = "needSell";
+        private const string TRIGGER_NEED_BUY = "needBuy";
+        private const string TRIGGER_COMPLETE = "complete";
+        private const string TRIGGER_ERROR = "error";
 
-		private	Symbol _symbol;
+        private Symbol _symbol;
 
-		public TradeLogic (Symbol symbol, bool logging = true) : base ("TradeLogic", 100, logging)
-		{
-			_symbol = symbol;
-			SetFirstState (STATE_BALANCE)
-				.SetupEntry (OnEntryBalance)
-				.SetupExit (OnExitBalance)
-				.SetupLoop (OnLoopBalance)
-				.ConnectTo (TRIGGER_COMPLETE, STATE_HISTORY);
-			AnyState ()
-				.ConnectTo (TRIGGER_ERROR, STATE_IDLE);
-			SetState (STATE_HISTORY)
-				.SetupEntry (OnEntryHistory)
-				.SetupExit (OnExitHistory)
-				.SetupLoop (OnLoopHistory)
-				.ConnectTo (TRIGGER_NEED_BUY, STATE_READY2BUY)
-				.ConnectTo (TRIGGER_NEED_SELL, STATE_READY2SELL);
-			SetState (STATE_READY2BUY)
-				.SetupEntry (OnEntryR2B)
-				.SetupExit (OnExitR2B)
-				.SetupLoop (OnLoopR2B)
-				.ConnectTo (TRIGGER_COMPLETE, STATE_BUYING);
-			SetState (STATE_BUYING)
-				.SetupEntry (OnEntryBuy)
-				.SetupExit (OnExitBuy)
-				.SetupLoop (OnLoopBuy)
-				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
-			SetState (STATE_READY2SELL)
-				.SetupEntry (OnEntryR2S)
-				.SetupExit (OnExitR2S)
-				.SetupLoop (OnLoopR2S)
-				.ConnectTo (TRIGGER_COMPLETE, STATE_SELLING);
-			SetState (STATE_SELLING)
-				.SetupEntry (OnEntrySell)
-				.SetupExit (OnExitSell)
-				.SetupLoop (OnLoopSell)
-				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
-			SetState (STATE_IDLE)
-				.SetupEntry (OnEntryIdle)
-				.SetupExit (OnExitIdle)
-				.SetupLoop (OnLoopIdle)
-				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
-			Start ();
-		}
+        public TradeLogic(Symbol symbol, bool logging = true) : base("TradeLogic", 100, logging)
+        {
+            _symbol = symbol;
+            SetFirstState(STATE_INIT)
+                .SetupEntry(OnEntryInit)
+                .SetupLoop(OnLoopInit)
+                .SetupExit(OnExitInit)
+                .ConnectTo(TRIGGER_COMPLETE, STATE_BALANCE);
+            SetState(STATE_BALANCE)
+                .SetupEntry(OnEntryBalance)
+                .SetupExit(OnExitBalance)
+                .SetupLoop(OnLoopBalance)
+                .ConnectTo(TRIGGER_COMPLETE, STATE_HISTORY);
+            AnyState()
+                .ConnectTo(TRIGGER_ERROR, STATE_IDLE);
+            SetState(STATE_HISTORY)
+                .SetupEntry(OnEntryHistory)
+                .SetupExit(OnExitHistory)
+                .SetupLoop(OnLoopHistory)
+                .ConnectTo(TRIGGER_NEED_BUY, STATE_READY2BUY)
+                .ConnectTo(TRIGGER_NEED_SELL, STATE_READY2SELL);
+            SetState(STATE_READY2BUY)
+                .SetupEntry(OnEntryR2B)
+                .SetupExit(OnExitR2B)
+                .SetupLoop(OnLoopR2B)
+                .ConnectTo(TRIGGER_COMPLETE, STATE_BUYING);
+            SetState(STATE_BUYING)
+                .SetupEntry(OnEntryBuy)
+                .SetupExit(OnExitBuy)
+                .SetupLoop(OnLoopBuy)
+                .ConnectTo(TRIGGER_COMPLETE, STATE_BALANCE);
+            SetState(STATE_READY2SELL)
+                .SetupEntry(OnEntryR2S)
+                .SetupExit(OnExitR2S)
+                .SetupLoop(OnLoopR2S)
+                .ConnectTo(TRIGGER_COMPLETE, STATE_SELLING);
+            SetState(STATE_SELLING)
+                .SetupEntry(OnEntrySell)
+                .SetupExit(OnExitSell)
+                .SetupLoop(OnLoopSell)
+                .ConnectTo(TRIGGER_COMPLETE, STATE_BALANCE);
+            SetState(STATE_IDLE)
+                .SetupEntry(OnEntryIdle)
+                .SetupExit(OnExitIdle)
+                .SetupLoop(OnLoopIdle)
+                .ConnectTo(TRIGGER_COMPLETE, STATE_BALANCE);
+            Start();
+        }
 
-		~TradeLogic ()
-		{
-			End ();
-		}
+        ~TradeLogic()
+        {
+            End();
+        }
 
-		#region 'Getting Balance' state
+        #region 'Initialize' state
 
-		private	void OnEntryBalance ()
-		{
-		}
+        private void OnEntryInit()
+        {
+            
+        }
 
-		private	void OnLoopBalance ()
-		{
-			var cl = stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone;
-			cl.GetBalanceAsync (() => {
-				Fire (TRIGGER_COMPLETE);
-			});
-		}
+        private void OnLoopInit()
+        {
+            var cl = stateMachines[CrawlerLogic.COINONE] as CrawlerCoinone;
+            cl.GetBalanceAsync(() =>
+            {
+                Fire(TRIGGER_COMPLETE);
+            });
+            Fire(TRIGGER_COMPLETE);
+        }
 
-		private	void OnExitBalance ()
-		{
-		}
+        private void OnExitInit()
+        {
 
-		#endregion
+        }
 
-		#region 'Getting History' state
+        #endregion
 
-		private	void OnEntryHistory ()
-		{
-		}
+        #region 'Getting Balance' state
 
-		private	void OnLoopHistory ()
-		{
-			var crawler = stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone;
-			var balance = crawler.market.balance;
-			var available = balance.GetAvailable (_symbol);
-			var cash = balance.GetAvailable (Symbol.KR_WON);
+        private void OnEntryBalance()
+        {
+            //var cl = stateMachines[CrawlerLogic.COINONE] as CrawlerCoinone;
+            //cl.GetBalanceAsync(() =>
+            //{
+            //    Fire(TRIGGER_COMPLETE);
+            //});
+        }
 
-			if (available > 0)
-				Fire (TRIGGER_NEED_SELL);
-			else if (cash > 0)
-				Fire (TRIGGER_NEED_BUY);
-			else
-				Fire (TRIGGER_ERROR);
-		}
+        private void OnLoopBalance()
+        {
+        }
 
-		private	void OnExitHistory ()
-		{
-		}
+        private void OnExitBalance()
+        {
+        }
 
-		#endregion
+        #endregion
 
-		#region 'Ready2Buy' state
+        #region 'Getting History' state
 
-		private	void OnEntryR2B ()
-		{
-			ConsoleIO.WriteLine ("Ready to BUY");
-		}
+        private void OnEntryHistory()
+        {
+        }
 
-		private	void OnLoopR2B ()
-		{
-		}
+        private void OnLoopHistory()
+        {
+            var crawler = stateMachines[CrawlerLogic.COINONE] as CrawlerCoinone;
+            var balance = crawler.market.balance;
+            var available = balance.GetAvailable(_symbol);
+            var cash = balance.GetAvailable(Symbol.KR_WON);
 
-		private	void OnExitR2B ()
-		{
-		}
+            if (available > 0)
+                Fire(TRIGGER_NEED_SELL);
+            else if (cash > 0)
+                Fire(TRIGGER_NEED_BUY);
+            else
+                Fire(TRIGGER_ERROR);
+        }
 
-		#endregion
+        private void OnExitHistory()
+        {
+        }
 
-		#region 'Buying' state
+        #endregion
 
-		private	void OnEntryBuy ()
-		{
-		}
+        #region 'Ready2Buy' state
 
-		private	void OnLoopBuy ()
-		{
-		}
+        private void OnEntryR2B()
+        {
+            ConsoleIO.WriteLine("Ready to BUY");
+        }
 
-		private	void OnExitBuy ()
-		{
-		}
+        private void OnLoopR2B()
+        {
+        }
 
-		#endregion
+        private void OnExitR2B()
+        {
+        }
 
-		#region 'Ready2Sell' state
+        #endregion
 
-		private	void OnEntryR2S ()
-		{
-			ConsoleIO.WriteLine ("Ready to SELL");
-		}
+        #region 'Buying' state
 
-		private void OnLoopR2S ()
-		{
-		}
+        private void OnEntryBuy()
+        {
+        }
 
-		private void OnExitR2S ()
-		{
-		}
+        private void OnLoopBuy()
+        {
+        }
 
-		#endregion
+        private void OnExitBuy()
+        {
+        }
 
-		#region 'Selling' state
+        #endregion
 
-		private	void OnEntrySell ()
-		{
-		}
+        #region 'Ready2Sell' state
 
-		private	void OnLoopSell ()
-		{
-		}
+        private void OnEntryR2S()
+        {
+            ConsoleIO.WriteLine("Ready to SELL");
+        }
 
-		private	void OnExitSell ()
-		{
-		}
+        private void OnLoopR2S()
+        {
+        }
 
-		#endregion
+        private void OnExitR2S()
+        {
+        }
 
-		#region 'Idle' state
+        #endregion
 
-		private	void OnEntryIdle ()
-		{
-		}
+        #region 'Selling' state
 
-		private	void OnLoopIdle ()
-		{
-		}
+        private void OnEntrySell()
+        {
+        }
 
-		private	void OnExitIdle ()
-		{
-		}
+        private void OnLoopSell()
+        {
+        }
 
-		#endregion
-	}
+        private void OnExitSell()
+        {
+        }
+
+        #endregion
+
+        #region 'Idle' state
+
+        private void OnEntryIdle()
+        {
+        }
+
+        private void OnLoopIdle()
+        {
+        }
+
+        private void OnExitIdle()
+        {
+        }
+
+        #endregion
+    }
 }
 

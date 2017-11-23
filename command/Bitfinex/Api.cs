@@ -139,12 +139,7 @@ namespace Joi.Bitfinex
 			return _GetCommonResponse (string.Format("book/{0}?limit_bids={1}&limit_asks={2}&group={2}", symbol, limit_bids, limit_asks, group));
 		}
 
-		public	JsonData GetTrades(string symbol, int timestamp)
-		{
-			return _GetCommonResponse (string.Format ("trades/{0}?timestamp={1}", symbol, timestamp));
-		}
-
-		public	JsonData GetTrades(string symbol, int timestamp, int limit_trades)
+		public	JsonData GetTrades(string symbol, int timestamp, int limit_trades = 999)
 		{
 			return _GetCommonResponse (string.Format ("trades/{0}?limit_trades={1}&timestamp={2}", symbol, limit_trades, timestamp));
 		}

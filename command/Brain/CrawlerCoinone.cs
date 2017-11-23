@@ -13,9 +13,9 @@ namespace Joi.Brain
 		public CrawlerCoinone (Symbol symbol, bool logging = true) : base (COINONE, Joi.Coinone.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
-			_market = new Market (name, TimeInterval.DAY_1);
-			_market.SetAnalyzer (TimeInterval.MINUTE_1, TimeInterval.HOUR_2);
-			_market.SetAnalyzer (TimeInterval.MINUTE_15, TimeInterval.DAY_1);
+			_market = new Market (name, TimeInterval.DAY_3);
+			_market.SetAnalyzer (TimeInterval.MINUTE_1, TimeInterval.HOUR_5);
+			_market.SetAnalyzer (TimeInterval.MINUTE_15, TimeInterval.DAY_3);
 
 			// convert symbol
 			switch (symbol) {

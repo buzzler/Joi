@@ -206,6 +206,7 @@ namespace Joi.Brain
 		private	void OnSelectLog ()
 		{
 			ConsoleIO.Clear ();
+			ConsoleIO.WriteLine (ConsoleIO.GetLog ());
 			ConsoleIO.WriteLine ("Press any key to return...");
 			ConsoleIO.Read ();
 		}

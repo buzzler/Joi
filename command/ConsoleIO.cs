@@ -28,7 +28,7 @@ namespace Joi
 
 			_log = new StringBuilder ();
 			_error = new StringBuilder ();
-			_cursor = new Queue<Tuple<int, int>> ();
+			_cursor = new Stack<Tuple<int, int>> ();
 			_instance = this;
 		}
 
