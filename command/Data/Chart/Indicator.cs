@@ -69,7 +69,18 @@ namespace Joi.Data.Chart
 			}
 		}
 
-		public	void AssignCandle (List<Trade> trades)
+		public	void AssignTrades(List<Trade> trades)
+		{
+			AssignCandle (trades);
+			AssignMA ();
+			AssignEMA ();
+			AssignMACD ();
+			AssignSignal ();
+			AssignMACDOscillator ();
+			AssignBollingerBand ();
+		}
+
+		private	void AssignCandle (List<Trade> trades)
 		{
 			// resetting
 			for (int i = 0; i < _count; i++)
@@ -117,13 +128,6 @@ namespace Joi.Data.Chart
 				var after = _candles [i_after];
 				current.Average (before, after);
 			}
-
-			AssignMA ();
-			AssignEMA ();
-			AssignMACD ();
-			AssignSignal ();
-			AssignMACDOscillator ();
-			AssignBollingerBand ();
 		}
 
 		private	void AssignMA ()

@@ -1,14 +1,30 @@
-﻿<Properties RefactoringSettings.EnableRefactorings="True" StartupConfiguration="{95017E2B-1594-4EF3-A7BA-551FCAFAC1B5}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="command/Data/Chart/Analyzer.cs">
+﻿<Properties RefactoringSettings.EnableRefactorings="True" StartupConfiguration="{95017E2B-1594-4EF3-A7BA-551FCAFAC1B5}|Default" StartupItem="command/command.csproj">
+  <MonoDevelop.Ide.Workbench ActiveDocument="command/Data/Market.cs">
     <Files>
-      <File FileName="command/Data/Chart/Analyzer.cs" Line="25" Column="4" />
+      <File FileName="command/Data/Chart/Indicator.cs" Line="59" Column="23" />
+      <File FileName="command/Data/Market.cs" Line="126" Column="27" />
     </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="Joi" expanded="True">
+            <Node name="command" expanded="True">
+              <Node name="Brain" expanded="True" />
+              <Node name="Data" expanded="True">
+                <Node name="Chart" expanded="True" />
+                <Node name="Market.cs" selected="True" />
+              </Node>
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
-  <MonoDevelop.Ide.ItemProperties.command PreferredExecutionTarget="MonoDevelop.Default" />
   <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.ItemProperties.command PreferredExecutionTarget="MonoDevelop.Default" />
 </Properties>

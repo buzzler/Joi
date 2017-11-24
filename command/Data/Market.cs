@@ -123,7 +123,7 @@ namespace Joi.Data
 		public	void UpdateChart ()
 		{
 			foreach (var indicator in _indicators.Values)
-				indicator.AssignCandle (_trades);
+				indicator.AssignTrades (_trades);
 		}
 
 		public	int GetLastTimestamp ()
