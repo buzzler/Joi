@@ -5,7 +5,7 @@ using Mono.Data.Sqlite;
 
 namespace Joi.Data.Chart
 {
-	public class Analyzer
+	public class Indicator
 	{
 		private	string _name;
 		private	TimeInterval _unit;
@@ -21,7 +21,7 @@ namespace Joi.Data.Chart
 
 		public	string name { get { return _name; } }
 
-		public	Analyzer (string name, TimeInterval unit, TimeInterval limit)
+		public	Indicator (string name, TimeInterval unit, TimeInterval limit)
 		{
 			_name = name;
 			Resize (unit, limit);
@@ -209,7 +209,7 @@ namespace Joi.Data.Chart
 
 		public	void Dump(SqliteCommand command)
 		{
-			var tablename = string.Format ("{0}_analyzer_{1}", _name, (int)_unit);
+			var tablename = string.Format ("{0}_indicator_{1}", _name, (int)_unit);
 			var sb = new StringBuilder ();
 			sb.AppendFormat ("CREATE TABLE {0} (", tablename);
 			sb.Append ("open REAL DEFAULT 0,");

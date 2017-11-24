@@ -15,7 +15,7 @@ namespace Joi.Data
 		private	List<int> _ids;
 		private	Ticker _ticker;
 		private	Balance _balance;
-		private	Dictionary <TimeInterval, Analyzer> _analyzers;
+		private	Dictionary <TimeInterval, Indicator> _indicators;
 
 		public	string name { get { return _name; } }
 
@@ -32,25 +32,25 @@ namespace Joi.Data
 			_ids = new List<int> ();
 			_ticker = new Ticker ();
 			_balance = new Balance ();
-			_analyzers = new Dictionary<TimeInterval, Analyzer> ();
+			_indicators = new Dictionary<TimeInterval, Indicator> ();
 		}
 
-		public	void SetAnalyzer (TimeInterval interval, TimeInterval limit = TimeInterval.NONE)
+		public	void SetIndicator (TimeInterval interval, TimeInterval limit = TimeInterval.NONE)
 		{
-			if (_analyzers.ContainsKey (interval))
+			if (_indicators.ContainsKey (interval))
 				return;
 
 			if (limit == TimeInterval.NONE)
 				limit = _limit;
 
-			var analyzer = new Analyzer (_name, interval, limit);
-			_analyzers.Add (interval, analyzer);
+			var indicator = new Indicator (_name, interval, limit);
+			_indicators.Add (interval, indicator);
 		}
 
-		public	Analyzer GetAnalyzer (TimeInterval interval)
+		public	Indicator GetIndicator (TimeInterval interval)
 		{
-			if (_analyzers.ContainsKey (interval))
-				return _analyzers [interval];
+			if (_indicators.ContainsKey (interval))
+				return _indicators [interval];
 			return null;
 		}
 
@@ -122,8 +122,8 @@ namespace Joi.Data
 
 		public	void UpdateChart ()
 		{
-			foreach (var analyzer in _analyzers.Values)
-				analyzer.AssignCandle (_trades);
+			foreach (var indicator in _indicators.Values)
+				indicator.AssignCandle (_trades);
 		}
 
 		public	int GetLastTimestamp ()
@@ -167,8 +167,8 @@ namespace Joi.Data
 				command.CommandText = sb.ToString ();
 				command.ExecuteNonQuery ();
 			}
-			foreach (var analyzer in _analyzers.Values)
-				analyzer.Dump (command);
+			foreach (var indicator in _indicators.Values)
+				indicator.Dump (command);
 		}
 
 		public	string Status()

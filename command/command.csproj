@@ -76,7 +76,6 @@
     <Compile Include="Data\Symbol.cs" />
     <Compile Include="Data\TimeInterval.cs" />
     <Compile Include="Data\Ticker.cs" />
-    <Compile Include="Data\Chart\Analyzer.cs" />
     <Compile Include="Data\Chart\EMA.cs" />
     <Compile Include="Data\Chart\MA.cs" />
     <Compile Include="Data\Chart\MACD.cs" />
@@ -86,6 +85,7 @@
     <Compile Include="Data\Chart\BollingerBand.cs" />
     <Compile Include="Data\Balance.cs" />
     <Compile Include="ConsoleIO.cs" />
+    <Compile Include="Data\Chart\Indicator.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

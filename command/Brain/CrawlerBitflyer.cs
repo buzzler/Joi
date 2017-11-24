@@ -14,8 +14,8 @@ namespace Joi.Brain
 		{
 			_api = new Api ();
 			_market = new Market (name, TimeInterval.DAY_3);
-			_market.SetAnalyzer (TimeInterval.MINUTE_1, TimeInterval.HOUR_5);
-			_market.SetAnalyzer (TimeInterval.MINUTE_15, TimeInterval.DAY_3);
+			_market.SetIndicator (TimeInterval.MINUTE_1, TimeInterval.HOUR_5);
+			_market.SetIndicator (TimeInterval.MINUTE_15, TimeInterval.DAY_3);
 
 			switch (symbol) {
 			case Symbol.BITCOIN:
