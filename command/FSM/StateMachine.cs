@@ -78,11 +78,6 @@ namespace Joi.FSM
 			_states = new Dictionary<string, State> ();
 		}
 
-		~StateMachine ()
-		{
-			_stateMachines.Remove (name);
-		}
-
 		/// <summary>
 		/// Sets the first state.
 		/// </summary>
@@ -226,6 +221,9 @@ namespace Joi.FSM
 			_current = null;
 			_any = null;
 			_states = null;
+
+			if (_stateMachines.ContainsKey(name))
+				_stateMachines.Remove (name);
 		}
 	}
 }
