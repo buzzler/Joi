@@ -18,7 +18,6 @@ namespace Joi
 
 		private	const int CAPACITY = 65535;
 		private	StringBuilder _log;
-		private	StringBuilder _error;
 		private	Stack<Tuple<int, int>> _cursor;
 
 		public	ConsoleIO()
@@ -27,7 +26,6 @@ namespace Joi
 				throw new Exception ("Already a instance exist");
 
 			_log = new StringBuilder ();
-			_error = new StringBuilder ();
 			_cursor = new Stack<Tuple<int, int>> ();
 			_instance = this;
 		}
@@ -57,16 +55,35 @@ namespace Joi
 			Console.WriteLine (format, args);
 		}
 
+		private	static string AppendPrefixLog(string message)
+		{
+			return string.Format ("[log]\t{0}", message);
+		}
+
+		private	static string AppendPrefixLog(string format, params object[] args)
+		{
+			return string.Format ("[log]\t{0}", string.Format(format, args));
+		}
+
+		private	static string AppendPrefixError(string message)
+		{
+			return string.Format ("[error]\t{0}", message);
+		}
+
+		private	static string AppendPrefixError(string format, params object[] args)
+		{
+			return string.Format ("[error]\t{0}", string.Format(format, args));
+		}
 
 		public	static void Log(string message)
 		{
-			instance._log.Append (message);
+			instance._log.Append (AppendPrefixLog(message));
 			Clip (instance._log);
 		}
 
 		public	static void Log(string format, params object[] args)
 		{
-			instance._log.AppendFormat (format, args);
+			instance._log.Append (AppendPrefixLog(format, args));
 			Clip (instance._log);
 		}
 
@@ -78,27 +95,27 @@ namespace Joi
 
 		public	static void LogLine(string message)
 		{
-			instance._log.AppendLine (message);
+			instance._log.AppendLine (AppendPrefixLog(message));
 			Clip (instance._log);
 		}
 
 		public	static void LogLine(string format, params object[] args)
 		{
-			instance._log.AppendLine (string.Format (format, args));
+			instance._log.AppendLine (AppendPrefixLog(format, args));
 			Clip (instance._log);
 		}
 
 		public	static void Error(string message)
 		{
-			instance._error.AppendLine (message);
-			Clip (instance._error);
+			instance._log.AppendLine (AppendPrefixError(message));
+			Clip (instance._log);
 		}
 
 		public	static void Error(string format, params object[] args)
 		{
-			instance._error.AppendFormat (format, args);
-			instance._error.AppendLine ();
-			Clip (instance._error);
+			instance._log.AppendFormat (AppendPrefixError(format, args));
+			instance._log.AppendLine ();
+			Clip (instance._log);
 		}
 
 		public	static int Read()
@@ -162,11 +179,6 @@ namespace Joi
 		public	static string GetLog()
 		{
 			return instance._log.ToString ();
-		}
-
-		public	static string GetError()
-		{
-			return instance._error.ToString ();
 		}
 	}
 }

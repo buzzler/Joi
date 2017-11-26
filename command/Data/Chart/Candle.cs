@@ -73,7 +73,7 @@ namespace Joi.Data.Chart
 			_valid = true;
 		}
 
-		public	void Average (Candle before, Candle after)
+		public	void Fillout (Candle before, Candle after)
 		{
 			if (_valid)
 				return;

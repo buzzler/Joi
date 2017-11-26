@@ -11,6 +11,7 @@ namespace Joi.Data.Chart
 		private	TimeInterval _unit;
 		private	TimeInterval _limit;
 		private	int _count;
+		private	int _lastest;
 		private	List<Candle> _candles;
 		private	Dictionary<int, List<MA>> _mas;
 		private	Dictionary<int, List<EMA>> _emas;
@@ -19,10 +20,40 @@ namespace Joi.Data.Chart
 		private	List<MACDOscillator> _oscillators;
 		private	List<BollingerBand> _bollingerbands;
 		private	double _avgAmount;
+		private	double _curAmountRatio;
+		private	double _curDeviationRatio;
+		private	bool _crossingAboveBB;
+		private	bool _crossingBelowBB;
+		private double _avgOscillator;
+		private double _curOscillatorRatio;
+		private	bool _crossingAboveOR;
+		private	bool _crossingBelowOR;
+		private	bool _increasingOR;
+		private	bool _decreasingOR;
 
 		public	string name { get { return _name; } }
 
 		public	double averageAmount { get { return _avgAmount; } }
+
+		public	double currentAmountRatio { get { return _curAmountRatio; } }
+
+		public	double currentDeviationRatio { get { return _curDeviationRatio; } }
+
+		public	bool crossingAboveBB { get { return _crossingAboveBB; } }
+
+		public	bool crossingBelowBB { get { return _crossingBelowBB; } }
+
+		public	double averageOscillator { get { return _avgOscillator; } }
+
+		public	double currentOscilatorRatio { get { return _curOscillatorRatio; } }
+
+		public	bool crossingAboveOR { get { return _crossingAboveOR; } }
+
+		public	bool crossingBelowOR { get { return _crossingBelowOR; } }
+
+		public	bool increasingOR { get { return _increasingOR; } }
+
+		public	bool decreasingOR { get { return _decreasingOR; } }
 
 		public	Indicator (string name, TimeInterval unit, TimeInterval limit)
 		{
@@ -37,6 +68,7 @@ namespace Joi.Data.Chart
 				_unit = unit;
 				_limit = limit;
 				_count = (int)((float)limit / (float)unit);
+				_lastest = _count - 1;
 				_candles = new List<Candle> (_count);
 				_mas = new Dictionary<int, List<MA>> () {
 					{ 15, new List<MA> (_count) },
@@ -85,6 +117,7 @@ namespace Joi.Data.Chart
 
 			CalculateVolume ();
 			CalculateBollingerBand ();
+			CalculateOscillator ();
 		}
 
 		private	void AssignCandle (List<Trade> trades)
@@ -105,12 +138,12 @@ namespace Joi.Data.Chart
 
 				var index = (int)((float)(timestamp - startTime) / (float)_unit);
 				if (index >= _count)
-					index = _count - 1;
+					index = _lastest;
 				_candles [index].Assign (trade);
 			}
 
 			// check empty candles (no trades)
-			for (int i = 1; i < _count - 1; i++) {
+			for (int i = 1; i < _lastest; i++) {
 				var current = _candles [i];
 				if (current.valid)
 					continue;
@@ -133,7 +166,7 @@ namespace Joi.Data.Chart
 				if (i_after >= _count)
 					continue;
 				var after = _candles [i_after];
-				current.Average (before, after);
+				current.Fillout (before, after);
 			}
 		}
 
@@ -143,7 +176,7 @@ namespace Joi.Data.Chart
 			while (itr.MoveNext ()) {
 				var scale = itr.Current.Key;
 				var list = itr.Current.Value;
-				for (int i = _count - 1; i >= 0; i--) {
+				for (int i = _lastest; i >= 0; i--) {
 					var ma = list [i];
 					ma.Begin ();
 					for (int k = scale - 1; k >= 0; k--) {
@@ -162,7 +195,7 @@ namespace Joi.Data.Chart
 			while (itr.MoveNext ()) {
 				var scale = itr.Current.Key;
 				var list = itr.Current.Value;
-				for (int i = _count - 1; i >= 0; i--) {
+				for (int i = _lastest; i >= 0; i--) {
 					var ema = list [i];
 					ema.Begin ();
 					for (int k = scale - 1; k >= 0; k--) {
@@ -185,7 +218,7 @@ namespace Joi.Data.Chart
 
 		private	void AssignSignal ()
 		{
-			for (int i = _count - 1; i >= 0; i--) {
+			for (int i = _lastest; i >= 0; i--) {
 				var signal = _signals [i];
 				signal.Begin ();
 				for (int k = 8; k >= 0; k--) {
@@ -199,14 +232,14 @@ namespace Joi.Data.Chart
 
 		private	void AssignMACDOscillator ()
 		{
-			for (int i = _count - 1; i >= 0; i--)
+			for (int i = _lastest; i >= 0; i--)
 				_oscillators [i].Calculate (_macds [i], _signals [i]);
 		}
 
 		private	void AssignBollingerBand ()
 		{
 			var scale = 20;
-			for (int i = _count - 1; i >= 0; i--) {
+			for (int i = _lastest; i >= 0; i--) {
 				var bb = _bollingerbands [i];
 				bb.Begin ();
 				for (int k = scale - 1; k >= 0; k--) {
@@ -226,20 +259,45 @@ namespace Joi.Data.Chart
 				var candle = _candles [i];
 				if (!candle.valid)
 					continue;
-				sum += candle.amount;
+				sum += Math.Abs(candle.amount);
 				count++;
 			}
 			_avgAmount = sum / count;
+			_curAmountRatio = _candles [_lastest].amount / _avgAmount;
 		}
 
 		private void CalculateBollingerBand()
 		{
-			var lastest = _count - 1;
-			var bb = _bollingerbands [lastest];
-			var candle = _candles [lastest];
+			var bbBefore = _bollingerbands [_lastest - 1];
+			var bb = _bollingerbands [_lastest];
+			var lastBefore = _candles [_lastest - 1];
+			var last = _candles [_lastest];
 
-			// TODO
-			throw new NotImplementedException();
+			var deviation = bb.value - last.close;
+			_curDeviationRatio = deviation / (bb.deviation * 2f);
+			_crossingAboveBB = (bbBefore.value > lastBefore.close) && (bb.value <= last.close);
+			_crossingBelowBB = (bbBefore.value < lastBefore.close) && (bb.value >= last.close);
+		}
+
+		private	void CalculateOscillator()
+		{
+			var lastBefore = _oscillators [_lastest];
+			var last = _oscillators [_lastest];
+			double count = 0;
+			double sum = 0;
+			for (int i = 0; i < _count; i++) {
+				var oscillator = _oscillators [i];
+				if (!oscillator.valid)
+					continue;
+				sum += Math.Abs(oscillator.value);
+				count++;
+			}
+			_avgOscillator = sum / count;
+			_curOscillatorRatio = last.value / _avgOscillator;
+			_crossingAboveOR = (lastBefore.value < 0) && (last.value >= 0);
+			_crossingBelowOR = (lastBefore.value > 0) && (last.value <= 0);
+			_increasingOR = lastBefore.value < last.value;
+			_decreasingOR = lastBefore.value >= last.value;
 		}
 
 		public	void Dump (SqliteCommand command)
