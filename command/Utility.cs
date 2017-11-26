@@ -15,14 +15,20 @@ namespace Joi
 		/// <param name="request">Request.</param>
 		public	static JsonData GetResponse (WebRequest request)
 		{
-			request.Credentials = CredentialCache.DefaultCredentials;
-			using (var response = request.GetResponse ()) {
-				using (var stream = response.GetResponseStream ()) {
-					using (var reader = new StreamReader (stream)) {
-						return JsonMapper.ToObject (reader.ReadToEnd ());
+			JsonData result = null;
+			try {
+				request.Credentials = CredentialCache.DefaultCredentials;
+				using (var response = request.GetResponse ()) {
+					using (var stream = response.GetResponseStream ()) {
+						using (var reader = new StreamReader (stream)) {
+							result = JsonMapper.ToObject (reader.ReadToEnd ());
+						}
 					}
 				}
+			} catch (Exception e) {
+				ConsoleIO.Error (e.Message);
 			}
+			return result;
 		}
 
 		/// <summary>

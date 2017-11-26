@@ -18,12 +18,16 @@ namespace Joi.Data.Chart
 		private	List<Signal> _signals;
 		private	List<MACDOscillator> _oscillators;
 		private	List<BollingerBand> _bollingerbands;
+		private	double _avgAmount;
 
 		public	string name { get { return _name; } }
+
+		public	double averageAmount { get { return _avgAmount; } }
 
 		public	Indicator (string name, TimeInterval unit, TimeInterval limit)
 		{
 			_name = name;
+			_avgAmount = 0;
 			Resize (unit, limit);
 		}
 
@@ -69,7 +73,7 @@ namespace Joi.Data.Chart
 			}
 		}
 
-		public	void AssignTrades(List<Trade> trades)
+		public	void AssignTrades (List<Trade> trades)
 		{
 			AssignCandle (trades);
 			AssignMA ();
@@ -78,6 +82,9 @@ namespace Joi.Data.Chart
 			AssignSignal ();
 			AssignMACDOscillator ();
 			AssignBollingerBand ();
+
+			CalculateVolume ();
+			CalculateBollingerBand ();
 		}
 
 		private	void AssignCandle (List<Trade> trades)
@@ -211,7 +218,31 @@ namespace Joi.Data.Chart
 			}
 		}
 
-		public	void Dump(SqliteCommand command)
+		private	void CalculateVolume ()
+		{
+			double sum = 0;
+			double count = 0;
+			for (var i = 0; i < _count; i++) {
+				var candle = _candles [i];
+				if (!candle.valid)
+					continue;
+				sum += candle.amount;
+				count++;
+			}
+			_avgAmount = sum / count;
+		}
+
+		private void CalculateBollingerBand()
+		{
+			var lastest = _count - 1;
+			var bb = _bollingerbands [lastest];
+			var candle = _candles [lastest];
+
+			// TODO
+			throw new NotImplementedException();
+		}
+
+		public	void Dump (SqliteCommand command)
 		{
 			var tablename = string.Format ("{0}_indicator_{1}", _name, (int)_unit);
 			var sb = new StringBuilder ();
@@ -240,13 +271,13 @@ namespace Joi.Data.Chart
 				sb.AppendFormat ("{0},", candle.high);
 				sb.AppendFormat ("{0},", candle.low);
 				sb.AppendFormat ("{0},", candle.amount);
-				sb.AppendFormat ("{0},", _emas[12][i].value);
-				sb.AppendFormat ("{0},", _emas[26][i].value);
-				sb.AppendFormat ("{0},", _macds[i].value);
-				sb.AppendFormat ("{0},", _signals[i].value);
-				sb.AppendFormat ("{0},", _oscillators[i].value);
-				sb.AppendFormat ("{0},", _bollingerbands[i].highband);
-				sb.AppendFormat ("{0});", _bollingerbands[i].lowband);
+				sb.AppendFormat ("{0},", _emas [12] [i].value);
+				sb.AppendFormat ("{0},", _emas [26] [i].value);
+				sb.AppendFormat ("{0},", _macds [i].value);
+				sb.AppendFormat ("{0},", _signals [i].value);
+				sb.AppendFormat ("{0},", _oscillators [i].value);
+				sb.AppendFormat ("{0},", _bollingerbands [i].highband);
+				sb.AppendFormat ("{0});", _bollingerbands [i].lowband);
 				command.CommandText = sb.ToString ();
 				command.ExecuteNonQuery ();
 			}

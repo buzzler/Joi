@@ -1,7 +1,8 @@
 ﻿<Properties RefactoringSettings.EnableRefactorings="True" StartupConfiguration="{95017E2B-1594-4EF3-A7BA-551FCAFAC1B5}|Default" StartupItem="command/command.csproj">
   <MonoDevelop.Ide.Workbench ActiveDocument="command/Data/Chart/Indicator.cs">
     <Files>
-      <File FileName="command/Data/Chart/Indicator.cs" Line="175" Column="36" />
+      <File FileName="command/Data/Chart/Indicator.cs" Line="117" Column="5" />
+      <File FileName="command/Utility.cs" Line="30" Column="5" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />

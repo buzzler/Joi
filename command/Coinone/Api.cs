@@ -293,14 +293,18 @@ namespace Joi.Coinone
 		private	JsonData _GetCommonResponse (WebRequest request)
 		{
 			var json = Utility.GetResponse (request);
-			var errorCode = int.Parse (json ["errorCode"].ToString ());
-
-			if (!_errorCode.ContainsKey (errorCode)) {
-				ConsoleIO.Error("uknown errorCode: {0}", errorCode);
+			if (json == null) {
+				ConsoleIO.Error ("no response: {0}", request.RequestUri);
 			} else {
-				var errorMessage = _errorCode [errorCode];
-				if (!string.IsNullOrEmpty (errorMessage))
-					ConsoleIO.Error (errorMessage);
+				var errorCode = int.Parse (json ["errorCode"].ToString ());
+
+				if (!_errorCode.ContainsKey (errorCode)) {
+					ConsoleIO.Error ("uknown errorCode: {0}", errorCode);
+				} else {
+					var errorMessage = _errorCode [errorCode];
+					if (!string.IsNullOrEmpty (errorMessage))
+						ConsoleIO.Error (errorMessage);
+				}
 			}
 			return json;
 		}
