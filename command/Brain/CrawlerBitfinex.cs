@@ -86,10 +86,7 @@ namespace Joi.Brain
         {
             var trades = _api.GetTrades(_symbol, timestamp);
             if (trades == null)
-            {
-                Fire(TRIGGER_STOP);
                 return;
-            }
             if (!trades.IsArray)
                 return;
 

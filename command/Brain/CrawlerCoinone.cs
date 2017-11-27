@@ -71,10 +71,8 @@ namespace Joi.Brain
 		private	void GetTrade (string period = "hour")
 		{
 			var json = _api.GetCompleteOrders (_currency, period);
-			if (json == null) {
-				Fire (TRIGGER_STOP);
+			if (json == null)
 				return;
-			}
 			var trades = json ["completeOrders"];
 			if (trades == null)
 				return;
@@ -98,6 +96,9 @@ namespace Joi.Brain
 		protected override void GetTicker ()
 		{
 			var json = _api.GetTicker (_currency);
+			if (json == null)
+				return;
+
 			_market.ticker.Update (
 				float.Parse (json ["high"].ToString ()),
 				0f,
@@ -109,10 +110,12 @@ namespace Joi.Brain
 
 		protected override void GetBalance()
 		{
-			var balance = _api.GetBalance ();
-			var btc = balance ["btc"];
-			var eth = balance ["eth"];
-			var won = balance ["krw"];
+			var json = _api.GetBalance ();
+			if (json == null)
+				return;
+			var btc = json ["btc"];
+			var eth = json ["eth"];
+			var won = json ["krw"];
 			_market.balance.SetValue (Symbol.BITCOIN, double.Parse (btc ["balance"].ToString ()), double.Parse (btc ["avail"].ToString ()));
 			_market.balance.SetValue (Symbol.ETHEREUM, double.Parse (eth ["balance"].ToString ()), double.Parse (eth ["avail"].ToString ()));
 			_market.balance.SetValue (Symbol.KR_WON, double.Parse (won ["balance"].ToString ()), double.Parse (won ["avail"].ToString ()));

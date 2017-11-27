@@ -70,10 +70,8 @@ namespace Joi.Brain
 		private	void GetTrade (int count = -1, int after = -1)
 		{
 			var trades = _api.GetExecutionHistory (_productCode, count, -1, after);
-			if (trades == null) {
-				Fire (TRIGGER_STOP);
+			if (trades == null)
 				return;
-			}
 			if (!trades.IsArray)
 				return;
 
@@ -93,19 +91,16 @@ namespace Joi.Brain
 
 		protected override void GetTicker ()
 		{
-			try {
-				var ticker = _api.GetTicker (_productCode);
-				_market.ticker.Update (
-					float.Parse (ticker ["best_bid"].ToString ()),
-					float.Parse (ticker ["best_bid_size"].ToString ()),
-					float.Parse (ticker ["best_ask"].ToString ()),
-					float.Parse (ticker ["best_ask_size"].ToString ()),
-					float.Parse (ticker ["volume"].ToString ())
-				);
-			} catch (Exception e) {
-				ConsoleIO.Error (e.Message);
-				Fire (TRIGGER_STOP);
-			}
+			var ticker = _api.GetTicker (_productCode);
+			if (ticker == null)
+				return;
+			_market.ticker.Update (
+				float.Parse (ticker ["best_bid"].ToString ()),
+				float.Parse (ticker ["best_bid_size"].ToString ()),
+				float.Parse (ticker ["best_ask"].ToString ()),
+				float.Parse (ticker ["best_ask_size"].ToString ()),
+				float.Parse (ticker ["volume"].ToString ())
+			);
 		}
 	}
 }
