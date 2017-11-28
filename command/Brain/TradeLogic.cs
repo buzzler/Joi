@@ -18,58 +18,61 @@ namespace Joi.Brain
         private const string TRIGGER_NEED_SELL = "needSell";
         private const string TRIGGER_NEED_BUY = "needBuy";
         private const string TRIGGER_COMPLETE = "complete";
+		private const string TRIGGER_SIMULATE = "simulate";
         private const string TRIGGER_ERROR = "error";
 
         private Symbol _symbol;
 
         public TradeLogic(Symbol symbol, bool logging = true) : base("TradeLogic", 100, logging)
-        {
-            _symbol = symbol;
-            SetFirstState(STATE_INIT)
-                .SetupEntry(OnEntryInit)
-                .SetupLoop(OnLoopInit)
-                .SetupExit(OnExitInit)
-                .ConnectTo(TRIGGER_COMPLETE, STATE_BALANCE);
-            SetState(STATE_BALANCE)
-                .SetupEntry(OnEntryBalance)
-                .SetupExit(OnExitBalance)
-                .SetupLoop(OnLoopBalance)
-                .ConnectTo(TRIGGER_COMPLETE, STATE_HISTORY);
-            AnyState()
-                .ConnectTo(TRIGGER_ERROR, STATE_IDLE);
-            SetState(STATE_HISTORY)
-                .SetupEntry(OnEntryHistory)
-                .SetupExit(OnExitHistory)
-                .SetupLoop(OnLoopHistory)
-                .ConnectTo(TRIGGER_NEED_BUY, STATE_READY2BUY)
-                .ConnectTo(TRIGGER_NEED_SELL, STATE_READY2SELL);
-            SetState(STATE_READY2BUY)
-                .SetupEntry(OnEntryR2B)
-                .SetupExit(OnExitR2B)
-                .SetupLoop(OnLoopR2B)
-                .ConnectTo(TRIGGER_COMPLETE, STATE_BUYING);
-            SetState(STATE_BUYING)
-                .SetupEntry(OnEntryBuy)
-                .SetupExit(OnExitBuy)
-                .SetupLoop(OnLoopBuy)
-                .ConnectTo(TRIGGER_COMPLETE, STATE_BALANCE);
-            SetState(STATE_READY2SELL)
-                .SetupEntry(OnEntryR2S)
-                .SetupExit(OnExitR2S)
-                .SetupLoop(OnLoopR2S)
-                .ConnectTo(TRIGGER_COMPLETE, STATE_SELLING);
-            SetState(STATE_SELLING)
-                .SetupEntry(OnEntrySell)
-                .SetupExit(OnExitSell)
-                .SetupLoop(OnLoopSell)
-                .ConnectTo(TRIGGER_COMPLETE, STATE_BALANCE);
-            SetState(STATE_IDLE)
-                .SetupEntry(OnEntryIdle)
-                .SetupExit(OnExitIdle)
-                .SetupLoop(OnLoopIdle)
-                .ConnectTo(TRIGGER_COMPLETE, STATE_BALANCE);
-            Start();
-        }
+		{
+			_symbol = symbol;
+			SetFirstState (STATE_INIT)
+                .SetupEntry (OnEntryInit)
+                .SetupLoop (OnLoopInit)
+                .SetupExit (OnExitInit)
+                .ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
+			SetState (STATE_BALANCE)
+                .SetupEntry (OnEntryBalance)
+                .SetupExit (OnExitBalance)
+                .SetupLoop (OnLoopBalance)
+                .ConnectTo (TRIGGER_COMPLETE, STATE_HISTORY);
+			AnyState ()
+                .ConnectTo (TRIGGER_ERROR, STATE_IDLE);
+			SetState (STATE_HISTORY)
+                .SetupEntry (OnEntryHistory)
+                .SetupExit (OnExitHistory)
+                .SetupLoop (OnLoopHistory)
+                .ConnectTo (TRIGGER_NEED_BUY, STATE_READY2BUY)
+                .ConnectTo (TRIGGER_NEED_SELL, STATE_READY2SELL);
+			SetState (STATE_READY2BUY)
+                .SetupEntry (OnEntryR2B)
+                .SetupExit (OnExitR2B)
+                .SetupLoop (OnLoopR2B)
+                .ConnectTo (TRIGGER_COMPLETE, STATE_BUYING);
+			SetState (STATE_BUYING)
+                .SetupEntry (OnEntryBuy)
+                .SetupExit (OnExitBuy)
+                .SetupLoop (OnLoopBuy)
+				.ConnectTo (TRIGGER_SIMULATE, STATE_READY2SELL)
+				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
+			SetState (STATE_READY2SELL)
+                .SetupEntry (OnEntryR2S)
+                .SetupExit (OnExitR2S)
+                .SetupLoop (OnLoopR2S)
+                .ConnectTo (TRIGGER_COMPLETE, STATE_SELLING);
+			SetState (STATE_SELLING)
+                .SetupEntry (OnEntrySell)
+                .SetupExit (OnExitSell)
+                .SetupLoop (OnLoopSell)
+				.ConnectTo (TRIGGER_SIMULATE, STATE_READY2BUY)
+                .ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
+			SetState (STATE_IDLE)
+                .SetupEntry (OnEntryIdle)
+                .SetupExit (OnExitIdle)
+                .SetupLoop (OnLoopIdle)
+                .ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
+			Start ();
+		}
 
         ~TradeLogic()
         {
@@ -80,7 +83,6 @@ namespace Joi.Brain
 
         private void OnEntryInit()
         {
-            
         }
 
         private void OnLoopInit()
@@ -95,7 +97,6 @@ namespace Joi.Brain
 
         private void OnExitInit()
         {
-
         }
 
         #endregion
@@ -104,11 +105,6 @@ namespace Joi.Brain
 
         private void OnEntryBalance()
         {
-            //var cl = stateMachines[CrawlerLogic.COINONE] as CrawlerCoinone;
-            //cl.GetBalanceAsync(() =>
-            //{
-            //    Fire(TRIGGER_COMPLETE);
-            //});
         }
 
         private void OnLoopBalance()
@@ -156,8 +152,29 @@ namespace Joi.Brain
         }
 
         private void OnLoopR2B()
-        {
-        }
+		{
+			var us = stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex;
+			var usInd = us.market.GetIndicator (TimeInterval.MINUTE_1);
+
+			int matched = 0;
+			if (usInd.currentAmountRatio > 0.5)
+				matched++;
+			if (usInd.currentDeviationRatio < -0.5)
+				matched++;
+			if (usInd.currentOscilatorRatio > 0)
+				matched++;
+			if (usInd.increasingOR)
+				matched++;
+			if (usInd.lastCandle.increasing)
+				matched++;
+			if (usInd.crossingBelowBB)
+				matched++;
+			if (usInd.crossingAboveOR)
+				matched++;
+
+			if (matched > 3)
+				Fire (TRIGGER_COMPLETE);
+		}
 
         private void OnExitR2B()
         {
@@ -173,6 +190,8 @@ namespace Joi.Brain
 
         private void OnLoopBuy()
         {
+			ConsoleIO.Log ("BUY: {0}", DateTime.Now.ToString("f"));
+			Fire (TRIGGER_SIMULATE);
         }
 
         private void OnExitBuy()
@@ -190,6 +209,27 @@ namespace Joi.Brain
 
         private void OnLoopR2S()
         {
+			var us = stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex;
+			var usInd = us.market.GetIndicator (TimeInterval.MINUTE_1);
+
+			int matched = 0;
+			if (usInd.currentAmountRatio > 0.5)
+				matched++;
+			if (usInd.currentDeviationRatio > 0.5)
+				matched++;
+			if (usInd.currentOscilatorRatio < 0)
+				matched++;
+			if (usInd.decreasingOR)
+				matched++;
+			if (usInd.lastCandle.decreasing)
+				matched++;
+			if (usInd.crossingAboveBB)
+				matched++;
+			if (usInd.crossingBelowOR)
+				matched++;
+
+			if (matched > 3)
+				Fire (TRIGGER_COMPLETE);
         }
 
         private void OnExitR2S()
@@ -206,6 +246,8 @@ namespace Joi.Brain
 
         private void OnLoopSell()
         {
+			ConsoleIO.Log ("SELL: {0}", DateTime.Now.ToString("f"));
+			Fire (TRIGGER_SIMULATE);
         }
 
         private void OnExitSell()

@@ -160,7 +160,7 @@ namespace Joi.Brain
 
 		private	void OnSelectDumpToFiles ()
 		{
-			var filename = string.Format ("{0}.db", DateTime.Now.ToString ("yyyy-MM-dd_hh.mm.ss"));
+			var filename = string.Format ("{0}.db", DateTime.Now.ToString ("yyyy-MM-dd_HH.mm.ss"));
 			var total = stateMachines.Count;
 			var current = 0;
 

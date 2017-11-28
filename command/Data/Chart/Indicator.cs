@@ -55,6 +55,8 @@ namespace Joi.Data.Chart
 
 		public	bool decreasingOR { get { return _decreasingOR; } }
 
+		public	Candle lastCandle { get { return _candles [_lastest]; } }
+
 		public	Indicator (string name, TimeInterval unit, TimeInterval limit)
 		{
 			_name = name;

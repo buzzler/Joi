@@ -15,6 +15,7 @@ namespace Joi.Brain
 			_api = new Api ();
 			_market = new Market (name, TimeInterval.DAY_3);
 			_market.SetIndicator (TimeInterval.MINUTE_1, TimeInterval.HOUR_5);
+			_market.SetIndicator (TimeInterval.MINUTE_5, TimeInterval.HOUR_30);
 			_market.SetIndicator (TimeInterval.MINUTE_15, TimeInterval.DAY_3);
 
 			switch (symbol) {
