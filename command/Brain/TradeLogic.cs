@@ -22,10 +22,14 @@ namespace Joi.Brain
         private const string TRIGGER_ERROR = "error";
 
         private Symbol _symbol;
+		private	double _buying;
+		private	double _benefit;
 
         public TradeLogic(Symbol symbol, bool logging = true) : base("TradeLogic", 100, logging)
 		{
 			_symbol = symbol;
+			_buying = 0;
+			_benefit = 0;
 			SetFirstState (STATE_INIT)
                 .SetupEntry (OnEntryInit)
                 .SetupLoop (OnLoopInit)
@@ -148,32 +152,37 @@ namespace Joi.Brain
 
         private void OnEntryR2B()
         {
-            ConsoleIO.WriteLine("Ready to BUY");
         }
 
         private void OnLoopR2B()
 		{
 			var us = stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex;
 			var usInd = us.market.GetIndicator (TimeInterval.MINUTE_1);
+			var last = usInd.lastCandle;
 
-			int matched = 0;
-			if (usInd.currentAmountRatio > 0.5)
-				matched++;
-			if (usInd.currentDeviationRatio < -0.5)
-				matched++;
-			if (usInd.currentOscilatorRatio > 0)
-				matched++;
-			if (usInd.increasingOR)
-				matched++;
-			if (usInd.lastCandle.increasing)
-				matched++;
-			if (usInd.crossingBelowBB)
-				matched++;
-			if (usInd.crossingAboveOR)
-				matched++;
-
-			if (matched > 3)
+			if ((usInd.currentAmountRatio > 3) && (last.increasing))
 				Fire (TRIGGER_COMPLETE);
+			if (usInd.currentDeviationRatio < -1.1)
+				Fire (TRIGGER_COMPLETE);
+
+//			int matched = 0;
+//			if (usInd.currentAmountRatio > 1)
+//				matched++;
+//			if (usInd.currentDeviationRatio < -0.5)
+//				matched++;
+//			if (usInd.currentOscilatorRatio > 0)
+//				matched++;
+//			if (usInd.increasingOR)
+//				matched++;
+//			if (usInd.lastCandle.increasing)
+//				matched++;
+//			if (usInd.crossingBelowBB)
+//				matched++;
+//			if (usInd.crossingAboveOR)
+//				matched++;
+//
+//			if (matched > 4)
+//				Fire (TRIGGER_COMPLETE);
 		}
 
         private void OnExitR2B()
@@ -190,7 +199,15 @@ namespace Joi.Brain
 
         private void OnLoopBuy()
         {
-			ConsoleIO.Log ("BUY: {0}", DateTime.Now.ToString("f"));
+			var kr = stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone;
+			var krInd = kr.market.GetIndicator (TimeInterval.MINUTE_1);
+			var krLast = krInd.lastCandle;
+
+			var us = stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex;
+			var usInd = us.market.GetIndicator (TimeInterval.MINUTE_1);
+			var usLast = usInd.lastCandle;
+			_buying = krLast.close;
+			ConsoleIO.LogLine ("BUY: {0}\t{1}", krLast.close, DateTime.Now.ToString("F"));
 			Fire (TRIGGER_SIMULATE);
         }
 
@@ -204,32 +221,43 @@ namespace Joi.Brain
 
         private void OnEntryR2S()
         {
-            ConsoleIO.WriteLine("Ready to SELL");
         }
 
         private void OnLoopR2S()
         {
+			var kr = stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone;
+			var krInd = kr.market.GetIndicator (TimeInterval.MINUTE_1);
+			var krLast = krInd.lastCandle;
+
 			var us = stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex;
 			var usInd = us.market.GetIndicator (TimeInterval.MINUTE_1);
+			var usLast = usInd.lastCandle;
 
-			int matched = 0;
-			if (usInd.currentAmountRatio > 0.5)
-				matched++;
-			if (usInd.currentDeviationRatio > 0.5)
-				matched++;
-			if (usInd.currentOscilatorRatio < 0)
-				matched++;
-			if (usInd.decreasingOR)
-				matched++;
-			if (usInd.lastCandle.decreasing)
-				matched++;
-			if (usInd.crossingAboveBB)
-				matched++;
-			if (usInd.crossingBelowOR)
-				matched++;
-
-			if (matched > 3)
+			if ((usInd.currentAmountRatio > 3) && (usLast.decreasing))
 				Fire (TRIGGER_COMPLETE);
+			if ((_buying > 0) && (_buying*1.002 < krLast.close) && usInd.decreasingOR)
+				Fire (TRIGGER_COMPLETE);
+			if ((_buying > 0) && (_buying*0.998 > krLast.close) && usInd.decreasingOR)
+				Fire (TRIGGER_COMPLETE);
+
+//			int matched = 0;
+//			if (usInd.currentAmountRatio > 1)
+//				matched++;
+//			if (usInd.currentDeviationRatio > 0.5)
+//				matched++;
+//			if (usInd.currentOscilatorRatio < 0)
+//				matched++;
+//			if (usInd.decreasingOR)
+//				matched++;
+//			if (usInd.lastCandle.decreasing)
+//				matched++;
+//			if (usInd.crossingAboveBB)
+//				matched++;
+//			if (usInd.crossingBelowOR)
+//				matched++;
+//
+//			if (matched > 4)
+//				Fire (TRIGGER_COMPLETE);
         }
 
         private void OnExitR2S()
@@ -246,7 +274,17 @@ namespace Joi.Brain
 
         private void OnLoopSell()
         {
-			ConsoleIO.Log ("SELL: {0}", DateTime.Now.ToString("f"));
+			var kr = stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone;
+			var krInd = kr.market.GetIndicator (TimeInterval.MINUTE_1);
+			var krLast = krInd.lastCandle;
+
+			var us = stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex;
+			var usInd = us.market.GetIndicator (TimeInterval.MINUTE_1);
+			var usLast = usInd.lastCandle;
+
+			var benefit = krLast.close * 0.999 - _buying;
+			_benefit += benefit;
+			ConsoleIO.LogLine ("SELL: {0} ({1}, total {2})\t{3}", krLast.close, benefit, _benefit, DateTime.Now.ToString("F"));
 			Fire (TRIGGER_SIMULATE);
         }
 

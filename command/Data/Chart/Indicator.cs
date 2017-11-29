@@ -275,7 +275,7 @@ namespace Joi.Data.Chart
 			var lastBefore = _candles [_lastest - 1];
 			var last = _candles [_lastest];
 
-			var deviation = bb.value - last.close;
+			var deviation = last.close - bb.value;
 			_curDeviationRatio = deviation / (bb.deviation * 2f);
 			_crossingAboveBB = (bbBefore.value > lastBefore.close) && (bb.value <= last.close);
 			_crossingBelowBB = (bbBefore.value < lastBefore.close) && (bb.value >= last.close);
