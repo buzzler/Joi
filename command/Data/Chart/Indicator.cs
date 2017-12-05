@@ -21,15 +21,15 @@ namespace Joi.Data.Chart
 		private	List<BollingerBand> _bollingerbands;
 		private	double _avgAmount;
 		private	double _curAmountRatio;
-		private	double _curDeviationRatio;
-		private	bool _crossingAboveBB;
-		private	bool _crossingBelowBB;
-		private double _avgOscillator;
-		private double _curOscillatorRatio;
-		private	bool _crossingAboveOR;
-		private	bool _crossingBelowOR;
-		private	bool _increasingOR;
-		private	bool _decreasingOR;
+//		private	double _curDeviationRatio;
+//		private	bool _crossingAboveBB;
+//		private	bool _crossingBelowBB;
+
+		public	List<Candle> candles { get { return _candles; } }
+
+		public	List<MACDOscillator> oscillators { get { return _oscillators; } }
+
+		public	List<BollingerBand> bollingerbands { get { return _bollingerbands; } }
 
 		public	string name { get { return _name; } }
 
@@ -37,25 +37,17 @@ namespace Joi.Data.Chart
 
 		public	double currentAmountRatio { get { return _curAmountRatio; } }
 
-		public	double currentDeviationRatio { get { return _curDeviationRatio; } }
-
-		public	bool crossingAboveBB { get { return _crossingAboveBB; } }
-
-		public	bool crossingBelowBB { get { return _crossingBelowBB; } }
-
-		public	double averageOscillator { get { return _avgOscillator; } }
-
-		public	double currentOscilatorRatio { get { return _curOscillatorRatio; } }
-
-		public	bool crossingAboveOR { get { return _crossingAboveOR; } }
-
-		public	bool crossingBelowOR { get { return _crossingBelowOR; } }
-
-		public	bool increasingOR { get { return _increasingOR; } }
-
-		public	bool decreasingOR { get { return _decreasingOR; } }
+//		public	double currentDeviationRatio { get { return _curDeviationRatio; } }
+//
+//		public	bool crossingAboveBB { get { return _crossingAboveBB; } }
+//
+//		public	bool crossingBelowBB { get { return _crossingBelowBB; } }
 
 		public	Candle lastCandle { get { return _candles [_lastest]; } }
+
+		public	MACDOscillator lastOscillator { get { return _oscillators [_lastest]; } }
+
+		public	BollingerBand lastBollingerBand { get { return _bollingerbands [_lastest]; } }
 
 		public	Indicator (string name, TimeInterval unit, TimeInterval limit)
 		{
@@ -118,8 +110,6 @@ namespace Joi.Data.Chart
 			AssignBollingerBand ();
 
 			CalculateVolume ();
-			CalculateBollingerBand ();
-			CalculateOscillator ();
 		}
 
 		private	void AssignCandle (List<Trade> trades)
@@ -234,8 +224,19 @@ namespace Joi.Data.Chart
 
 		private	void AssignMACDOscillator ()
 		{
-			for (int i = _lastest; i >= 0; i--)
-				_oscillators [i].Calculate (_macds [i], _signals [i]);
+			double max = 0;
+			for (int i = _lastest; i >= 0; i--) {
+				var current = _oscillators [i];
+				current.SetValue (_macds [i], _signals [i]);
+				if (current.valid && max < current.value)
+					max = Math.Abs(current.value);
+			}
+
+			for (int i = _lastest; i > 0; i--) {
+				var current = _oscillators [i];
+				var before = _oscillators [i - 1];
+				current.SetDelta (max, before);
+			}
 		}
 
 		private	void AssignBollingerBand ()
@@ -251,6 +252,19 @@ namespace Joi.Data.Chart
 				}
 				bb.End ();
 			}
+
+			for (int i = _lastest; i > 0; i--)
+				_bollingerbands [i].SetDelta (_bollingerbands [i - 1], _candles [i - 1], _candles [i]);
+//
+//			var beforeBB = _bollingerbands [_lastest - 1];
+//			var lastBB = _bollingerbands [_lastest];
+//			var beforeCandle = _candles [_lastest - 1];
+//			var lastCandle = _candles [_lastest];
+//
+//			var deviation = lastCandle.close - lastBB.value;
+//			_curDeviationRatio = deviation / (lastBB.deviation * 2f);
+//			_crossingAboveBB = (beforeBB.value > beforeCandle.close) && (lastBB.value <= lastCandle.close);
+//			_crossingBelowBB = (beforeBB.value < beforeCandle.close) && (lastBB.value >= lastCandle.close);
 		}
 
 		private	void CalculateVolume ()
@@ -268,45 +282,14 @@ namespace Joi.Data.Chart
 			_curAmountRatio = _candles [_lastest].amount / _avgAmount;
 		}
 
-		private void CalculateBollingerBand()
-		{
-			var bbBefore = _bollingerbands [_lastest - 1];
-			var bb = _bollingerbands [_lastest];
-			var lastBefore = _candles [_lastest - 1];
-			var last = _candles [_lastest];
-
-			var deviation = last.close - bb.value;
-			_curDeviationRatio = deviation / (bb.deviation * 2f);
-			_crossingAboveBB = (bbBefore.value > lastBefore.close) && (bb.value <= last.close);
-			_crossingBelowBB = (bbBefore.value < lastBefore.close) && (bb.value >= last.close);
-		}
-
-		private	void CalculateOscillator()
-		{
-			var lastBefore = _oscillators [_lastest];
-			var last = _oscillators [_lastest];
-			double count = 0;
-			double sum = 0;
-			for (int i = 0; i < _count; i++) {
-				var oscillator = _oscillators [i];
-				if (!oscillator.valid)
-					continue;
-				sum += Math.Abs(oscillator.value);
-				count++;
-			}
-			_avgOscillator = sum / count;
-			_curOscillatorRatio = last.value / _avgOscillator;
-			_crossingAboveOR = (lastBefore.value < 0) && (last.value >= 0);
-			_crossingBelowOR = (lastBefore.value > 0) && (last.value <= 0);
-			_increasingOR = lastBefore.value < last.value;
-			_decreasingOR = lastBefore.value >= last.value;
-		}
-
 		public	void Dump (SqliteCommand command)
 		{
 			var tablename = string.Format ("{0}_indicator_{1}", _name, (int)_unit);
 			var sb = new StringBuilder ();
 			sb.AppendFormat ("CREATE TABLE {0} (", tablename);
+			sb.Append ("date TEXT,");
+			sb.Append ("timestamp INTEGER DEFAULT 0,");
+			sb.Append ("buy INTEGER DEFAULT 0,");
 			sb.Append ("open REAL DEFAULT 0,");
 			sb.Append ("close REAL DEFAULT 0,");
 			sb.Append ("high REAL DEFAULT 0,");
@@ -322,10 +305,15 @@ namespace Joi.Data.Chart
 			command.CommandText = sb.ToString ();
 			command.ExecuteNonQuery ();
 
+			var timestamp = _candles [_lastest].closeTime - (int)_limit;
+			var startTime = Utility.DateTime (timestamp);
 			for (int i = 0; i < _count; i++) {
 				var candle = _candles [i];
 				sb.Clear ();
 				sb.AppendFormat ("INSERT INTO {0} VALUES(", tablename);
+				sb.AppendFormat ("'{0}',", startTime.ToString ("T"));
+				sb.AppendFormat ("{0},", timestamp);
+				sb.AppendFormat ("{0},", Utility.IsTimeToBuy (_bollingerbands [i], _oscillators [i]) ? 1 : 0);
 				sb.AppendFormat ("{0},", candle.open);
 				sb.AppendFormat ("{0},", candle.close);
 				sb.AppendFormat ("{0},", candle.high);
@@ -340,6 +328,49 @@ namespace Joi.Data.Chart
 				sb.AppendFormat ("{0});", _bollingerbands [i].lowband);
 				command.CommandText = sb.ToString ();
 				command.ExecuteNonQuery ();
+
+				timestamp += (int)_unit;
+				startTime = Utility.DateTime (timestamp);
+			}
+		}
+
+		public	void Analysis (SqliteCommand command)
+		{
+			var tablename = string.Format ("{0}_indicator_{1}_analysis", _name, (int)_unit);
+			var sb = new StringBuilder ();
+			sb.AppendFormat ("CREATE TABLE {0} (", tablename);
+			sb.Append ("date TEXT,");
+			sb.Append ("close REAL DEFAULT 0,");
+			sb.Append ("oscillator REAL DEFAULT 0,");
+			sb.Append ("bollinger_high REAL DEFAULT 0,");
+			sb.Append ("bollinger_low REAL DEFAULT 0,");
+			sb.Append ("buy INTEGER DEFAULT 0,");
+			sb.Append ("deviation_ratio REAL DEFAULT 0,");
+			sb.Append ("increasing INTEGER DEFAULT 0,");
+			sb.Append ("delta REAL DEFAULT 0);");
+			command.CommandText = sb.ToString ();
+			command.ExecuteNonQuery ();
+
+			var timestamp = _candles [_lastest].closeTime - (int)_limit;
+			var startTime = Utility.DateTime (timestamp);
+			for (int i = 0; i < _count; i++) {
+				var candle = _candles [i];
+				sb.Clear ();
+				sb.AppendFormat ("INSERT INTO {0} VALUES(", tablename);
+				sb.AppendFormat ("'{0}',", startTime.ToString ("T"));
+				sb.AppendFormat ("{0},", candle.close);
+				sb.AppendFormat ("{0},", _oscillators [i].value);
+				sb.AppendFormat ("{0},", _bollingerbands [i].highband);
+				sb.AppendFormat ("{0},", _bollingerbands [i].lowband);
+				sb.AppendFormat ("{0},", Utility.IsTimeToBuy (_bollingerbands [i], _oscillators [i]) ? 1 : 0);
+				sb.AppendFormat ("{0},", _bollingerbands [i].deviationRatio);
+				sb.AppendFormat ("{0},", _oscillators [i].increasing ? 1 : 0);
+				sb.AppendFormat ("{0});", _oscillators [i].delta);
+				command.CommandText = sb.ToString ();
+				command.ExecuteNonQuery ();
+
+				timestamp += (int)_unit;
+				startTime = Utility.DateTime (timestamp);
 			}
 		}
 	}

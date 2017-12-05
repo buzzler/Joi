@@ -21,7 +21,7 @@ namespace Joi.Brain
 //            _market.SetIndicator(TimeInterval.MINUTE_3, TimeInterval.HOUR_15);
 //            _market.SetIndicator(TimeInterval.MINUTE_5, TimeInterval.HOUR_30);
 //            _market.SetIndicator(TimeInterval.MINUTE_10, TimeInterval.HOUR_60);
-//            _market.SetIndicator(TimeInterval.MINUTE_15, TimeInterval.DAY_3);
+            _market.SetIndicator(TimeInterval.MINUTE_15, TimeInterval.DAY_3);
 
             switch (symbol)
             {

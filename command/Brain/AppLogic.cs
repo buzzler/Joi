@@ -16,7 +16,7 @@ namespace Joi.Brain
 		private const string TRIGGER_COMPLETE	= "complete";
 		private	const string TRIGGER_START = "start";
 		private	const string TRIGGER_STOP = "stop";
-		private	const string TRADE = "trade";
+		private	const string TRADE = "TradeLogic";
 
 		private	Symbol _symbol = Symbol.BITCOIN;
 		private	Dictionary<string, Thread> _threads;
@@ -131,26 +131,30 @@ namespace Joi.Brain
 		{
 			ConsoleIO.Clear ();
 			ConsoleIO.WriteLine ("1. Backup to Database");
-			ConsoleIO.WriteLine ("2. Status");
-			ConsoleIO.WriteLine ("3. Log");
-			ConsoleIO.WriteLine ("4. Exit");
+			ConsoleIO.WriteLine ("2. Show Status");
+			ConsoleIO.WriteLine ("3. Show Log");
+			ConsoleIO.WriteLine ("4. Trade On/Off");
+			ConsoleIO.WriteLine ("5. Exit");
 			ConsoleIO.WriteLine ();
 			ConsoleIO.Write ("> ");
 			ConsoleIO.ShowCursor ();
-			string input = ConsoleIO.ReadLine ();
+			int input = ConsoleIO.Read ();
 			ConsoleIO.HideCursor ();
 
 			switch (input) {
-			case "1":
+			case 49:
 				OnSelectDumpToFiles ();
 				break;
-			case "2":
+			case 50:
 				OnSelectStatus ();
 				break;
-			case "3":
+			case 51:
 				OnSelectLog ();
 				break;
-			case "4":
+			case 52:
+				OnSelectTrade ();
+				break;
+			case 53:
 				OnSelectExit ();
 				break;
 			}
@@ -199,6 +203,11 @@ namespace Joi.Brain
 					ConsoleIO.WriteLine (crawler.Status ());
 				}
 			}
+			ConsoleIO.WriteLine ("Press any key to continue...");
+			ConsoleIO.Read ();
+			ConsoleIO.Clear ();
+			foreach (var key in _threads.Keys)
+				ConsoleIO.WriteLine ("{0}: {1}", key, _threads[key].IsAlive ? "alive":"stopped");
 			ConsoleIO.WriteLine ("Press any key to return...");
 			ConsoleIO.Read ();
 		}
@@ -207,6 +216,23 @@ namespace Joi.Brain
 		{
 			ConsoleIO.Clear ();
 			ConsoleIO.WriteLine (ConsoleIO.GetLog ());
+			ConsoleIO.WriteLine ("Press any key to return...");
+			ConsoleIO.Read ();
+		}
+
+		private	void OnSelectTrade ()
+		{
+			ConsoleIO.Clear ();
+
+			var sm = stateMachines [TRADE] as TradeLogic;
+			if (sm.IsTradable) {
+				sm.TradeOff ();
+				ConsoleIO.WriteLine ("Trade Off");
+			} else {
+				sm.TradeOn ();
+				ConsoleIO.WriteLine ("Trade On");
+			}
+
 			ConsoleIO.WriteLine ("Press any key to return...");
 			ConsoleIO.Read ();
 		}

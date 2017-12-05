@@ -22,6 +22,10 @@ namespace Joi.Data.Chart
 
 		public	double close { get { return _close; } }
 
+		public	int openTime { get { return _openTime; } }
+
+		public	int closeTime { get { return _closeTime; } }
+
 		public	bool increasing { get { return _close > _open; } }
 
 		public	bool decreasing { get { return _open > _close; } }

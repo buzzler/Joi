@@ -1,11 +1,11 @@
 ﻿<Properties RefactoringSettings.EnableRefactorings="True" StartupConfiguration="{95017E2B-1594-4EF3-A7BA-551FCAFAC1B5}|Default" StartupItem="command/command.csproj">
-  <MonoDevelop.Ide.Workbench ActiveDocument="command/Data/Chart/Indicator.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="command/Coinone/Api.cs">
     <Files>
-      <File FileName="command/Brain/AppLogic.cs" Line="163" Column="81" />
-      <File FileName="command/Brain/TradeLogic.cs" Line="174" Column="1" />
-      <File FileName="command/Brain/CrawlerBitfinex.cs" Line="117" Column="10" />
-      <File FileName="command/Data/Chart/Indicator.cs" Line="284" Column="37" />
-      <File FileName="command/Data/Chart/BollingerBand.cs" Line="8" Column="28" />
+      <File FileName="command/Brain/AppLogic.cs" Line="206" Column="51" />
+      <File FileName="command/Brain/TradeLogic.cs" Line="194" Column="33" />
+      <File FileName="command/Data/Chart/Indicator.cs" Line="31" Column="30" />
+      <File FileName="command/Coinone/Api.cs" Line="148" Column="25" />
+      <File FileName="command/Utility.cs" Line="16" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release|x86" />

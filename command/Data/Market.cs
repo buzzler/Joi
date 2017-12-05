@@ -167,8 +167,10 @@ namespace Joi.Data
 				command.CommandText = sb.ToString ();
 				command.ExecuteNonQuery ();
 			}
-			foreach (var indicator in _indicators.Values)
+			foreach (var indicator in _indicators.Values) {
 				indicator.Dump (command);
+				indicator.Analysis (command);
+			}
 		}
 
 		public	string Status()
