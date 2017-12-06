@@ -16,11 +16,7 @@ namespace Joi.Brain
         {
             _api = new Api();
             _market = new Market(name, TimeInterval.DAY_3);
-//            _market.SetIndicator(TimeInterval.SECOND_30, TimeInterval.HOUR_3);
             _market.SetIndicator(TimeInterval.MINUTE_1, TimeInterval.HOUR_5);
-//            _market.SetIndicator(TimeInterval.MINUTE_3, TimeInterval.HOUR_15);
-//            _market.SetIndicator(TimeInterval.MINUTE_5, TimeInterval.HOUR_30);
-//            _market.SetIndicator(TimeInterval.MINUTE_10, TimeInterval.HOUR_60);
             _market.SetIndicator(TimeInterval.MINUTE_15, TimeInterval.DAY_3);
 
             switch (symbol)
@@ -64,9 +60,9 @@ namespace Joi.Brain
 
         protected override void OnExitGather()
         {
-            _api.UnsubscribeTrade();
-            _api.UnsubscribeTicker();
-            _api.UnsubscribeOrderBook();
+//            _api.UnsubscribeTrade();
+//            _api.UnsubscribeTicker();
+//            _api.UnsubscribeOrderBook();
             _api.Disconnect();
         }
 
@@ -76,6 +72,7 @@ namespace Joi.Brain
 
         protected override void OnLoopStop()
         {
+			Fire (TRIGGER_START);
         }
 
         protected override void OnExitStop()

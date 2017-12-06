@@ -74,14 +74,24 @@ namespace Joi
 			return false;
 		}
 
-		public	static bool IsTimeToBuy(BollingerBand bb, MACDOscillator oscillator)
-		{
-			if (bb.deviationRatio < -0.9 && oscillator.increasing)
-				return true;
-			else if (oscillator.delta > 0.5)
-				return true;
+//		public	static bool IsTimeToBuy(BollingerBand bb, MACDOscillator oscillator)
+//		{
+//			if (bb.deviationRatio < -0.9 && oscillator.increasing)
+//				return true;
+//			else if (oscillator.delta > 0.5)
+//				return true;
+//
+//			return false;
+//		}
 
-			return false;
+		public	static bool IsTimeToReadyBuying(BollingerBand bb)
+		{
+			return (bb.deviationRatio < -0.7);
+		}
+
+		public	static bool IsTimeToBuying(BollingerBand bb, MACDOscillator oscillator)
+		{
+			return (bb.deviationRatio > -0.6 && oscillator.increasing);
 		}
 	}
 }

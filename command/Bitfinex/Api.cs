@@ -175,52 +175,58 @@ namespace Joi.Bitfinex
 
 		#region web-socket event handler
 
-		private	void OnMessage (object sender, MessageEventArgs e)
+		private	void OnMessage (object sender, MessageEventArgs args)
 		{
-			var json = JsonMapper.ToObject (e.Data);
-			if (json.IsArray) {
-				var count = json.Count;
-				if (count == 0)
-					return;
+			try
+			{
+				var json = JsonMapper.ToObject (args.Data);
+				if (json.IsArray) {
+					var count = json.Count;
+					if (count == 0)
+						return;
 
-				Action<JsonData> onCallback = null;
-				var chanId = int.Parse (json [0].ToString ());
-				if (chanId == _channelOrderBook && _onOrderBook != null)
-					onCallback = _onOrderBook;
-				else if (chanId == _channelTicker && _onTicker != null)
-					onCallback = _onTicker;
-				else if (chanId == _channelTrade && _onTrade != null)
-					onCallback = _onTrade;
-				else
-					return;
+					Action<JsonData> onCallback = null;
+					var chanId = int.Parse (json [0].ToString ());
+					if (chanId == _channelOrderBook && _onOrderBook != null)
+						onCallback = _onOrderBook;
+					else if (chanId == _channelTicker && _onTicker != null)
+						onCallback = _onTicker;
+					else if (chanId == _channelTrade && _onTrade != null)
+						onCallback = _onTrade;
+					else
+						return;
 
-				if (count == 2 && json [1].IsArray) {
-					var ary = json [1];
-					for (int i = 0; i < ary.Count; i++)
-						onCallback (ary [i]);
-				} else {
-					onCallback (json);
+					if (count == 2 && json [1].IsArray) {
+						var ary = json [1];
+						for (int i = 0; i < ary.Count; i++)
+							onCallback (ary [i]);
+					} else {
+						onCallback (json);
+					}
+				} else if (json.IsObject) {
+					var responce = json ["event"].ToString ();
+					if (responce == "info") {
+						return;
+					} else if (responce != "subscribed")
+						return;
+
+					var protocol = json ["channel"].ToString ();
+					var chanId = int.Parse (json ["chanId"].ToString ());
+					switch (protocol) {
+					case "book":
+						_channelOrderBook = chanId;
+						break;
+					case "trades":
+						_channelTrade = chanId;
+						break;
+					case "ticker":
+						_channelTicker = chanId;
+						break;
+					}
 				}
-			} else if (json.IsObject) {
-				var responce = json ["event"].ToString ();
-				if (responce == "info") {
-					return;
-				} else if (responce != "subscribed")
-					return;
-
-				var protocol = json ["channel"].ToString ();
-				var chanId = int.Parse (json ["chanId"].ToString ());
-				switch (protocol) {
-				case "book":
-					_channelOrderBook = chanId;
-					break;
-				case "trades":
-					_channelTrade = chanId;
-					break;
-				case "ticker":
-					_channelTicker = chanId;
-					break;
-				}
+			} catch (Exception e) {
+				if (_onError != null)
+					_onError (e.Message);
 			}
 		}
 

@@ -174,7 +174,7 @@ namespace Joi.Brain
 				return;
 
 			var us = (stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex).market.GetIndicator (TimeInterval.MINUTE_1);
-			if (Utility.IsTimeToBuy (us.lastBollingerBand, us.lastOscillator))
+			if (Utility.IsTimeToReadyBuying (us.lastBollingerBand))
 				Fire (TRIGGER_COMPLETE);
 		}
 
@@ -192,6 +192,9 @@ namespace Joi.Brain
 
         private void OnLoopBuy()
         {
+			if (!_tradable)
+				return;
+
 //			var kr = stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone;
 //			var krInd = kr.market.GetIndicator (TimeInterval.MINUTE_1);
 //			var krLast = krInd.lastCandle;
@@ -200,6 +203,9 @@ namespace Joi.Brain
 			var us = stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex;
 			var usInd = us.market.GetIndicator (TimeInterval.MINUTE_1);
 			var usLast = usInd.lastCandle;
+
+			if (!Utility.IsTimeToBuying (usInd.lastBollingerBand, usInd.lastOscillator))
+				return;
 
 			// for test
 			_buying = usLast.close;

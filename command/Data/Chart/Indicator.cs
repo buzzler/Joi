@@ -289,7 +289,6 @@ namespace Joi.Data.Chart
 			sb.AppendFormat ("CREATE TABLE {0} (", tablename);
 			sb.Append ("date TEXT,");
 			sb.Append ("timestamp INTEGER DEFAULT 0,");
-			sb.Append ("buy INTEGER DEFAULT 0,");
 			sb.Append ("open REAL DEFAULT 0,");
 			sb.Append ("close REAL DEFAULT 0,");
 			sb.Append ("high REAL DEFAULT 0,");
@@ -313,7 +312,6 @@ namespace Joi.Data.Chart
 				sb.AppendFormat ("INSERT INTO {0} VALUES(", tablename);
 				sb.AppendFormat ("'{0}',", startTime.ToString ("T"));
 				sb.AppendFormat ("{0},", timestamp);
-				sb.AppendFormat ("{0},", Utility.IsTimeToBuy (_bollingerbands [i], _oscillators [i]) ? 1 : 0);
 				sb.AppendFormat ("{0},", candle.open);
 				sb.AppendFormat ("{0},", candle.close);
 				sb.AppendFormat ("{0},", candle.high);
@@ -326,46 +324,6 @@ namespace Joi.Data.Chart
 				sb.AppendFormat ("{0},", _oscillators [i].value);
 				sb.AppendFormat ("{0},", _bollingerbands [i].highband);
 				sb.AppendFormat ("{0});", _bollingerbands [i].lowband);
-				command.CommandText = sb.ToString ();
-				command.ExecuteNonQuery ();
-
-				timestamp += (int)_unit;
-				startTime = Utility.DateTime (timestamp);
-			}
-		}
-
-		public	void Analysis (SqliteCommand command)
-		{
-			var tablename = string.Format ("{0}_indicator_{1}_analysis", _name, (int)_unit);
-			var sb = new StringBuilder ();
-			sb.AppendFormat ("CREATE TABLE {0} (", tablename);
-			sb.Append ("date TEXT,");
-			sb.Append ("close REAL DEFAULT 0,");
-			sb.Append ("oscillator REAL DEFAULT 0,");
-			sb.Append ("bollinger_high REAL DEFAULT 0,");
-			sb.Append ("bollinger_low REAL DEFAULT 0,");
-			sb.Append ("buy INTEGER DEFAULT 0,");
-			sb.Append ("deviation_ratio REAL DEFAULT 0,");
-			sb.Append ("increasing INTEGER DEFAULT 0,");
-			sb.Append ("delta REAL DEFAULT 0);");
-			command.CommandText = sb.ToString ();
-			command.ExecuteNonQuery ();
-
-			var timestamp = _candles [_lastest].closeTime - (int)_limit;
-			var startTime = Utility.DateTime (timestamp);
-			for (int i = 0; i < _count; i++) {
-				var candle = _candles [i];
-				sb.Clear ();
-				sb.AppendFormat ("INSERT INTO {0} VALUES(", tablename);
-				sb.AppendFormat ("'{0}',", startTime.ToString ("T"));
-				sb.AppendFormat ("{0},", candle.close);
-				sb.AppendFormat ("{0},", _oscillators [i].value);
-				sb.AppendFormat ("{0},", _bollingerbands [i].highband);
-				sb.AppendFormat ("{0},", _bollingerbands [i].lowband);
-				sb.AppendFormat ("{0},", Utility.IsTimeToBuy (_bollingerbands [i], _oscillators [i]) ? 1 : 0);
-				sb.AppendFormat ("{0},", _bollingerbands [i].deviationRatio);
-				sb.AppendFormat ("{0},", _oscillators [i].increasing ? 1 : 0);
-				sb.AppendFormat ("{0});", _oscillators [i].delta);
 				command.CommandText = sb.ToString ();
 				command.ExecuteNonQuery ();
 
