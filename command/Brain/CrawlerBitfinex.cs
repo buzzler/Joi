@@ -36,6 +36,7 @@ namespace Joi.Brain
 
         protected override void OnLoopInit()
         {
+			ConnectDatabase ();
             GetTradeByWeb(Utility.Timestamp(DateTime.Now) - (int)TimeInterval.DAY_3);
             Sleep();
             Fire(TRIGGER_COMPLETE);
@@ -64,6 +65,7 @@ namespace Joi.Brain
 //            _api.UnsubscribeTicker();
 //            _api.UnsubscribeOrderBook();
             _api.Disconnect();
+			DisconnectDatabase ();
         }
 
         protected override void OnEntryStop()
@@ -91,12 +93,13 @@ namespace Joi.Brain
             for (int i = 0; i < count; i++)
             {
                 var trade = trades[i];
-                _market.ReserveTrade(
-                    int.Parse(trade["tid"].ToString()),
-                    double.Parse(trade["price"].ToString()),
-                    double.Parse(trade["amount"].ToString()),
-                    int.Parse(trade["timestamp"].ToString())
-                );
+				var tid = int.Parse (trade ["tid"].ToString ());
+				var price = double.Parse (trade ["price"].ToString ());
+				var amount = double.Parse (trade ["amount"].ToString ());
+				var ts = int.Parse(trade["timestamp"].ToString());
+
+                _market.ReserveTrade(tid, price, amount, ts);
+				ExecuteQuery (string.Format("INSERT OR REPLACE INTO {0} VALUES({1}, {2}, {3}, {4});", name, tid, price, amount, ts));
             }
             _market.FlushTrade();
             _market.UpdateChart();
@@ -125,12 +128,12 @@ namespace Joi.Brain
                 if (id < 0)
                     return;
 
-                _market.AddTrade(
-                    id,
-                    float.Parse(json[len - 2].ToString()),
-                    float.Parse(json[len - 1].ToString()),
-                    int.Parse(json[len - 3].ToString())
-                );
+				var price = float.Parse(json[len - 2].ToString());
+				var amount = float.Parse(json[len - 1].ToString());
+				var ts = int.Parse(json[len - 3].ToString());
+
+				_market.AddTrade(id, price, amount, ts);
+				ExecuteQuery (string.Format("INSERT INTO {0} VALUES({1}, {2}, {3}, {4});", name, id, price, amount, ts));
                 _market.UpdateChart();
             }
             catch (Exception e)
