@@ -112,6 +112,8 @@ namespace Joi.Brain
 
 		public	void ConnectDatabase()
 		{
+			if (_connection != null)
+				DisconnectDatabase ();
 			if (_connection == null) {
 				var connsb = new SqliteConnectionStringBuilder ();
 				connsb.DataSource = "trades.db";
@@ -184,10 +186,13 @@ namespace Joi.Brain
 				_connection.StateChange -= OnStateChange;
 				_connection.Dispose ();
 			}
+			_command = null;
+			_connection = null;
 		}
 
 		private	void OnStateChange (object sender, System.Data.StateChangeEventArgs e)
 		{
+			ConsoleIO.LogLine ("{0} connection state change: from {1}, to {2}", name, e.OriginalState, e.CurrentState);
 			if (e.CurrentState != System.Data.ConnectionState.Closed)
 				return;
 			DisconnectDatabase ();

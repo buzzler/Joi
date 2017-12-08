@@ -4,7 +4,7 @@ namespace Joi.Bitfinex
 {
 	public class Limit
 	{
-		public	const int QUERY_TIMEOUT = 6010;			// 10 query per a minute
+		public	const int QUERY_TIMEOUT = 15000;		// 10 query per a minute
 		public	const int TICKER_TIMEOUT = 1010;		// 60 ticker per a minute
 		public	const int STATS_TIMEOUT = 6010;			// 10 stats per a minute
 		public	const int FUNDINGBOOK_TIMEOUT = 1340;	// 45 fundingbook per a minute

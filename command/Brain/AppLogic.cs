@@ -216,8 +216,9 @@ namespace Joi.Brain
 		{
 			ConsoleIO.Clear ();
 			ConsoleIO.WriteLine (ConsoleIO.GetLog ());
-			ConsoleIO.WriteLine ("Press any key to return...");
+			ConsoleIO.Bypass (true);
 			ConsoleIO.Read ();
+			ConsoleIO.Bypass (false);
 		}
 
 		private	void OnSelectTrade ()

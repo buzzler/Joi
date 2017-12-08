@@ -180,6 +180,7 @@ namespace Joi.Bitfinex
 			try
 			{
 				var json = JsonMapper.ToObject (args.Data);
+
 				if (json.IsArray) {
 					var count = json.Count;
 					if (count == 0)

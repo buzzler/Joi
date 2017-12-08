@@ -64,34 +64,58 @@ namespace Joi
 			return dtDateTime;
 		}
 
-		public	static bool IsTimeToSell(Candle candle, MACDOscillator oscillator, double bought = 0)
+		public	static bool IsTimeToSell(Candle candle_1m, MACDOscillator oscillator_1m, MACDOscillator oscillator_5m, double bought = 0)
 		{
-			if ((bought > 0) && (bought * 1.001 > candle.close))
-				return false;
-			else if (oscillator.decreasing)
-				return true;
+//			if ((bought > 0) && (bought * 1.001 > candle_1m.close))
+//				return false;
+
+			if (bought > 0) {
+				var fee = bought * 0.001;
+				var benefit = Math.Abs(candle_1m.close - bought);
+				if (fee >= benefit)
+					return false;
+			}
+
+			if (oscillator_1m.decreasing) {
+				if (oscillator_5m.decreasing)
+					return true;
+			}
 
 			return false;
 		}
 
-//		public	static bool IsTimeToBuy(BollingerBand bb, MACDOscillator oscillator)
-//		{
-//			if (bb.deviationRatio < -0.9 && oscillator.increasing)
-//				return true;
-//			else if (oscillator.delta > 0.5)
-//				return true;
-//
-//			return false;
-//		}
-
-		public	static bool IsTimeToReadyBuying(BollingerBand bb)
+		public	static bool IsTimeToReadyBuying(BollingerBand bb_1m, MACDOscillator oscillator_1m, MACDOscillator oscillator_5m)
 		{
-			return (bb.deviationRatio < -0.7);
+//			var result = (bb_1m.deviationRatio < -0.7);
+//			if (result) {
+//				ConsoleIO.LogLine ("[BollingerBand] high:{0}, value:{1}, low:{2}, ratio:{3}", bb_1m.highband, bb_1m.value, bb_1m.lowband, bb_1m.deviationRatio);
+//				return true;
+//			}
+
+			var result = (oscillator_1m.increasing && oscillator_5m.increasing);
+			if (result) {
+				ConsoleIO.LogLine ("[Oscillator] increasing");
+				return true;
+			}
+
+			return false;
 		}
 
-		public	static bool IsTimeToBuying(BollingerBand bb, MACDOscillator oscillator)
+		public	static bool IsTimeToBuying(BollingerBand bb_1m, MACDOscillator oscillator_1m, MACDOscillator oscillator_5m)
 		{
-			return (bb.deviationRatio > -0.6 && oscillator.increasing);
+			var result = (bb_1m.deviationRatio > -0.6 && oscillator_1m.increasing);
+			if (result) {
+				ConsoleIO.LogLine ("[BollingerBand] high:{0}, value:{1}, low:{2}, ratio:{3}", bb_1m.highband, bb_1m.value, bb_1m.lowband, bb_1m.deviationRatio);
+				return true;
+			}
+
+//			result = (oscillator_1m.increasing && oscillator_5m.increasing);
+//			if (result) {
+//				ConsoleIO.LogLine ("[Oscillator] increasing");
+//				return true;
+//			}
+
+			return false;
 		}
 	}
 }

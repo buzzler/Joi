@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Timers;
 using Joi.Bitfinex;
 using LitJson;
 using Joi.Data;
@@ -11,24 +12,26 @@ namespace Joi.Brain
     {
         private Api _api;
         private string _symbol;
+		private	Timer _timerTrade;
+		private	Timer _timerOrderbook;
+		private	Timer _timerTicker;
 
         public CrawlerBitfinex(Symbol symbol, bool logging = true) : base(BITFINEX, Joi.Bitfinex.Limit.QUERY_TIMEOUT, logging)
-        {
-            _api = new Api();
-            _market = new Market(name, TimeInterval.DAY_3);
-            _market.SetIndicator(TimeInterval.MINUTE_1, TimeInterval.HOUR_5);
-            _market.SetIndicator(TimeInterval.MINUTE_15, TimeInterval.DAY_3);
+		{
+			_api = new Api ();
+			_market = new Market (name, TimeInterval.DAY_3);
+			_market.SetIndicator (TimeInterval.MINUTE_1, TimeInterval.HOUR_5);
+			_market.SetIndicator (TimeInterval.MINUTE_5, TimeInterval.HOUR_30);
 
-            switch (symbol)
-            {
-                case Symbol.BITCOIN:
-                    _symbol = "btcusd";
-                    break;
-                case Symbol.ETHEREUM:
-                    _symbol = "ethusd";
-                    break;
-            }
-        }
+			switch (symbol) {
+			case Symbol.BITCOIN:
+				_symbol = "btcusd";
+				break;
+			case Symbol.ETHEREUM:
+				_symbol = "ethusd";
+				break;
+			}
+		}
 
         protected override void OnEntryInit()
         {
@@ -48,23 +51,26 @@ namespace Joi.Brain
 
         protected override void OnEntryGather()
         {
-            _api.Connect(OnSocketError);
-            _api.SubscribeTrade(_symbol, OnSubscribedTrade);
-            _api.SubscribeOrderBook(_symbol, OnSubscribeOrderBook);
-            _api.SubscribeTicker(_symbol, OnSubscribeTicker);
+//			RestartTimer ();
+//            _api.Connect(OnSocketError);
+//            _api.SubscribeTrade(_symbol, OnSubscribedTrade);
+//            _api.SubscribeOrderBook(_symbol, OnSubscribeOrderBook);
+//            _api.SubscribeTicker(_symbol, OnSubscribeTicker);
         }
 
         protected override void OnLoopGather()
         {
             base.OnLoopGather();
+			GetTradeByWeb (_market.GetLastTimestamp ());
         }
 
         protected override void OnExitGather()
         {
 //            _api.UnsubscribeTrade();
 //            _api.UnsubscribeTicker();
-//            _api.UnsubscribeOrderBook();
-            _api.Disconnect();
+//			_api.UnsubscribeOrderBook();
+//			_api.Disconnect();
+//			StopTimer();
 			DisconnectDatabase ();
         }
 
@@ -81,29 +87,97 @@ namespace Joi.Brain
         {
         }
 
+		private void RestartTimer(Timer timer = null)
+		{
+			if (timer != null) {
+				timer.Stop ();
+				timer.Start ();
+				return;
+			}
+
+			if (_timerTrade == null) {
+				_timerTrade = new Timer (10000);
+				_timerTrade.AutoReset = false;
+				_timerTrade.Elapsed += OnTimer;
+			} else {
+				_timerTrade.Stop ();
+			}
+			 
+			if (_timerOrderbook == null) {
+				_timerOrderbook = new Timer (10000);
+				_timerOrderbook.AutoReset = false;
+				_timerOrderbook.Elapsed += OnTimer;
+			} else {
+				_timerOrderbook.Stop ();
+			}
+			if (_timerTicker == null) {
+				_timerTicker = new Timer (10000);
+				_timerTicker.AutoReset = false;
+				_timerTicker.Elapsed += OnTimer;
+			} else {
+				_timerTicker.Stop ();
+			}
+
+			_timerTrade.Start ();
+			_timerOrderbook.Start ();
+			_timerTicker.Start ();
+		}
+
+		private	void StopTimer()
+		{
+			if (_timerTrade != null) {
+				_timerTrade.Elapsed -= OnTimer;
+				_timerTrade.Stop ();
+			}
+
+			if (_timerOrderbook != null) {
+				_timerOrderbook.Elapsed -= OnTimer;
+				_timerOrderbook.Stop ();
+			}
+
+			if (_timerTicker != null) {
+				_timerTicker.Elapsed -= OnTimer;
+				_timerTicker.Stop ();
+			}
+
+			_timerTrade = null;
+			_timerOrderbook = null;
+			_timerTicker = null;
+		}
+
+		private	void OnTimer(object sender, ElapsedEventArgs e)
+		{
+			ConsoleIO.Error ("heart beat missing.. ({0} )", e.SignalTime.ToString("F"));
+			Fire (TRIGGER_STOP);
+		}
+
         private void GetTradeByWeb(int timestamp)
-        {
-            var trades = _api.GetTrades(_symbol, timestamp);
-            if (trades == null)
-                return;
-            if (!trades.IsArray)
-                return;
+		{
+			try {
+				var trades = _api.GetTrades (_symbol, timestamp);
+				if (trades == null)
+					return;
+				if (!trades.IsArray)
+					return;
 
-            var count = trades.Count;
-            for (int i = 0; i < count; i++)
-            {
-                var trade = trades[i];
-				var tid = int.Parse (trade ["tid"].ToString ());
-				var price = double.Parse (trade ["price"].ToString ());
-				var amount = double.Parse (trade ["amount"].ToString ());
-				var ts = int.Parse(trade["timestamp"].ToString());
+				var count = trades.Count;
+				for (int i = 0; i < count; i++) {
+					var trade = trades [i];
+					var tid = int.Parse (trade ["tid"].ToString ());
+					var price = double.Parse (trade ["price"].ToString ());
+					var amount = double.Parse (trade ["amount"].ToString ());
+					var ts = int.Parse (trade ["timestamp"].ToString ());
 
-                _market.ReserveTrade(tid, price, amount, ts);
-				ExecuteQuery (string.Format("INSERT OR REPLACE INTO {0} VALUES({1}, {2}, {3}, {4});", name, tid, price, amount, ts));
-            }
-            _market.FlushTrade();
-            _market.UpdateChart();
-        }
+					_market.ReserveTrade (tid, price, amount, ts);
+					ExecuteQuery (string.Format ("INSERT OR REPLACE INTO {0} VALUES({1}, {2}, {3}, {4});", name, tid, price, amount, ts));
+				}
+				_market.FlushTrade ();
+				_market.UpdateChart ();
+			} catch (Exception e) {
+				ConsoleIO.Error (e.Message);
+				Fire (TRIGGER_STOP);
+			}
+		}
 
         private void OnSocketError(string message)
         {
@@ -115,8 +189,10 @@ namespace Joi.Brain
             try
             {
                 var len = json.Count;
-                if (len == 2)
+				if (len == 2) {
+					RestartTimer(_timerTrade);
                     return;
+				}
 
                 var jsonId = json[len - 4];
                 var valueId = jsonId.ToString().Trim();
@@ -133,7 +209,7 @@ namespace Joi.Brain
 				var ts = int.Parse(json[len - 3].ToString());
 
 				_market.AddTrade(id, price, amount, ts);
-				ExecuteQuery (string.Format("INSERT INTO {0} VALUES({1}, {2}, {3}, {4});", name, id, price, amount, ts));
+				ExecuteQuery (string.Format("INSERT OR REPLACE INTO {0} VALUES({1}, {2}, {3}, {4});", name, id, price, amount, ts));
                 _market.UpdateChart();
             }
             catch (Exception e)
@@ -145,14 +221,22 @@ namespace Joi.Brain
 
         private void OnSubscribeOrderBook(JsonData json)
         {
+			var len = json.Count;
+			if (len == 2) {
+				RestartTimer(_timerOrderbook);
+				return;
+			}
         }
 
         private void OnSubscribeTicker(JsonData json)
         {
             try
             {
-                if (json.Count == 2)
-                    return;
+				var len = json.Count;
+				if (len == 2) {
+					RestartTimer(_timerTicker);
+					return;
+				}
 
                 _market.ticker.Update(
                     float.Parse(json[1].ToString()),

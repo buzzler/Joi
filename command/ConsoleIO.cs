@@ -19,6 +19,7 @@ namespace Joi
 		private	const int CAPACITY = 65535;
 		private	StringBuilder _log;
 		private	Stack<Tuple<int, int>> _cursor;
+		private	bool _bypass;
 
 		public	ConsoleIO()
 		{
@@ -28,6 +29,7 @@ namespace Joi
 			_log = new StringBuilder ();
 			_cursor = new Stack<Tuple<int, int>> ();
 			_instance = this;
+			_bypass = false;
 		}
 
 		public	static void Write(string message)
@@ -77,45 +79,72 @@ namespace Joi
 
 		public	static void Log(string message)
 		{
-			instance._log.Append (AppendPrefixLog(message));
+			var mod = AppendPrefixLog (message);
+			instance._log.Append (mod);
 			Clip (instance._log);
+
+			if (instance._bypass)
+				Console.Write (mod);
 		}
 
 		public	static void Log(string format, params object[] args)
 		{
-			instance._log.Append (AppendPrefixLog(format, args));
+			var mod = AppendPrefixLog (format, args);
+			instance._log.Append (mod);
 			Clip (instance._log);
+
+			if (instance._bypass)
+				Console.Write (mod);
 		}
 
 		public	static void LogLine()
 		{
 			instance._log.AppendLine ();
 			Clip (instance._log);
+
+			if (instance._bypass)
+				Console.WriteLine ();
 		}
 
 		public	static void LogLine(string message)
 		{
-			instance._log.AppendLine (AppendPrefixLog(message));
+			var mod = AppendPrefixLog (message);
+			instance._log.AppendLine (mod);
 			Clip (instance._log);
+
+			if (instance._bypass)
+				Console.WriteLine (mod);
 		}
 
 		public	static void LogLine(string format, params object[] args)
 		{
-			instance._log.AppendLine (AppendPrefixLog(format, args));
+			var mod = AppendPrefixLog (format, args);
+			instance._log.AppendLine (mod);
 			Clip (instance._log);
+
+			if (instance._bypass)
+				Console.WriteLine (mod);
 		}
 
 		public	static void Error(string message)
 		{
-			instance._log.AppendLine (AppendPrefixError(message));
+			var mod = AppendPrefixError (message);
+			instance._log.AppendLine (mod);
 			Clip (instance._log);
+
+			if (instance._bypass)
+				Console.WriteLine (mod);
 		}
 
 		public	static void Error(string format, params object[] args)
 		{
-			instance._log.AppendFormat (AppendPrefixError(format, args));
+			var mod = AppendPrefixError (format, args);
+			instance._log.AppendFormat (mod);
 			instance._log.AppendLine ();
 			Clip (instance._log);
+
+			if (instance._bypass)
+				Console.WriteLine (mod);
 		}
 
 		public	static int Read()
@@ -179,6 +208,11 @@ namespace Joi
 		public	static string GetLog()
 		{
 			return instance._log.ToString ();
+		}
+
+		public	static void Bypass(bool value)
+		{
+			instance._bypass = value;
 		}
 	}
 }

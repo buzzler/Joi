@@ -16,7 +16,6 @@ namespace Joi.Brain
 			_market = new Market (name, TimeInterval.DAY_3);
 			_market.SetIndicator (TimeInterval.MINUTE_1, TimeInterval.HOUR_5);
 			_market.SetIndicator (TimeInterval.MINUTE_5, TimeInterval.HOUR_30);
-			_market.SetIndicator (TimeInterval.MINUTE_15, TimeInterval.DAY_3);
 
 			// convert symbol
 			switch (symbol) {
@@ -35,6 +34,7 @@ namespace Joi.Brain
 
 		protected override void OnLoopInit ()
 		{
+			ConnectDatabase ();
 			GetTrade ("day");
 			Fire (TRIGGER_COMPLETE);
 		}
@@ -55,6 +55,7 @@ namespace Joi.Brain
 
 		protected override void OnExitGather ()
 		{
+			DisconnectDatabase ();
 		}
 
 		protected override void OnEntryStop ()
@@ -83,12 +84,13 @@ namespace Joi.Brain
 			var count = trades.Count;
 			for (int i = 0; i < count; i++) {
 				var trade = trades [i];
-				_market.ReserveTrade (
-					int.Parse (trade ["timestamp"].ToString ()),
-					double.Parse (trade ["price"].ToString ()),
-					double.Parse (trade ["qty"].ToString ()),
-					int.Parse (trade ["timestamp"].ToString ())
-				);
+
+				var timestamp = int.Parse (trade ["timestamp"].ToString ());
+				var price = double.Parse (trade ["price"].ToString ());
+				var amount = double.Parse (trade ["qty"].ToString ());
+
+				_market.ReserveTrade (timestamp, price, amount, timestamp);
+				ExecuteQuery (string.Format("INSERT OR REPLACE INTO {0} VALUES({1}, {2}, {3}, {4});", name, timestamp, price, amount, timestamp));
 			}
 			_market.FlushTrade ();
 			_market.UpdateChart ();

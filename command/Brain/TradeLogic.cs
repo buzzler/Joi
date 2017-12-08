@@ -10,6 +10,7 @@ namespace Joi.Brain
         private const string STATE_BALANCE = "Balance";
         private const string STATE_HISTORY = "History";
         private const string STATE_READY2BUY = "Ready2Buy";
+		private const string STATE_AGING = "Aging";
         private const string STATE_READY2SELL = "Ready2Sell";
         private const string STATE_BUYING = "Buying";
         private const string STATE_SELLING = "Selling";
@@ -22,8 +23,10 @@ namespace Joi.Brain
         private const string TRIGGER_ERROR = "error";
 
         private Symbol _symbol;
-		private	double _buying;
-		private	double _benefit;
+		private	double _buyingUS;
+		private	double _buyingKR;
+		private	double _benefitUS;
+		private	double _benefitKR;
 		private	bool _tradable;
 
 		public	bool IsTradable { get { return _tradable; } }
@@ -31,8 +34,10 @@ namespace Joi.Brain
         public TradeLogic(Symbol symbol, bool logging = true) : base("TradeLogic", 100, logging)
 		{
 			_symbol = symbol;
-			_buying = 0;
-			_benefit = 0;
+			_buyingUS = 0;
+			_benefitUS = 0;
+			_buyingKR = 0;
+			_benefitKR = 0;
 			_tradable = true;
 			SetFirstState (STATE_INIT)
                 .SetupEntry (OnEntryInit)
@@ -61,6 +66,11 @@ namespace Joi.Brain
                 .SetupEntry (OnEntryBuy)
                 .SetupExit (OnExitBuy)
                 .SetupLoop (OnLoopBuy)
+				.ConnectTo (TRIGGER_SIMULATE, STATE_AGING)
+				.ConnectTo (TRIGGER_COMPLETE, STATE_AGING);
+			SetState (STATE_AGING)
+				.SetupEntry(OnEntryAging)
+				.SetupExit(OnExitAging)
 				.ConnectTo (TRIGGER_SIMULATE, STATE_READY2SELL)
 				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
 			SetState (STATE_READY2SELL)
@@ -173,9 +183,13 @@ namespace Joi.Brain
 			if (!_tradable)
 				return;
 
-			var us = (stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex).market.GetIndicator (TimeInterval.MINUTE_1);
-			if (Utility.IsTimeToReadyBuying (us.lastBollingerBand))
-				Fire (TRIGGER_COMPLETE);
+			var kr_1m = (stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone).market.GetIndicator (TimeInterval.MINUTE_1);
+			var kr_5m = (stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone).market.GetIndicator (TimeInterval.MINUTE_5);
+			if (!Utility.IsTimeToReadyBuying (kr_1m.lastBollingerBand, kr_1m.lastOscillator, kr_5m.lastOscillator))
+				return;
+
+			ConsoleIO.LogLine ("{1} READY: W{0}", kr_1m.lastCandle.close, DateTime.Now.ToString("F"));
+			Fire (TRIGGER_COMPLETE);
 		}
 
         private void OnExitR2B()
@@ -194,23 +208,22 @@ namespace Joi.Brain
         {
 			if (!_tradable)
 				return;
+			
+			var usInd_1m = (stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex).market.GetIndicator (TimeInterval.MINUTE_1);
+			var usInd_5m = (stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex).market.GetIndicator (TimeInterval.MINUTE_5);
+			var usLast_1m = usInd_1m.lastCandle;
+			var krInd_1m = (stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone).market.GetIndicator (TimeInterval.MINUTE_1);
+			var krInd_5m = (stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone).market.GetIndicator (TimeInterval.MINUTE_5);
+			var krLast_1m = krInd_1m.lastCandle;
 
-//			var kr = stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone;
-//			var krInd = kr.market.GetIndicator (TimeInterval.MINUTE_1);
-//			var krLast = krInd.lastCandle;
-//			_buying = krLast.close;
-
-			var us = stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex;
-			var usInd = us.market.GetIndicator (TimeInterval.MINUTE_1);
-			var usLast = usInd.lastCandle;
-
-			if (!Utility.IsTimeToBuying (usInd.lastBollingerBand, usInd.lastOscillator))
+			if (!Utility.IsTimeToBuying (krInd_1m.lastBollingerBand, krInd_1m.lastOscillator, krInd_5m.lastOscillator))
 				return;
 
 			// for test
-			_buying = usLast.close;
+			_buyingUS = usLast_1m.close;
+			_buyingKR = krLast_1m.close;
 
-			ConsoleIO.LogLine ("{1} BUY: {0}", _buying, DateTime.Now.ToString("F"));
+			ConsoleIO.LogLine ("{1} BUY: W{0}", (int)_buyingKR, DateTime.Now.ToString("F"));
 			Fire (TRIGGER_SIMULATE);
         }
 
@@ -219,6 +232,32 @@ namespace Joi.Brain
         }
 
         #endregion
+
+		#region 'Aging' state
+
+		System.Timers.Timer _timer;
+
+		private	void OnEntryAging()
+		{
+			_timer = new System.Timers.Timer ((int)TimeInterval.MINUTE_1 * 1000);
+			_timer.AutoReset = false;
+			_timer.Elapsed += OnTimerAging;
+			_timer.Start ();
+		}
+
+		private void OnTimerAging (object sender, System.Timers.ElapsedEventArgs e)
+		{
+			Fire (TRIGGER_SIMULATE);
+		}
+
+		private void OnExitAging()
+		{
+			_timer.Elapsed -= OnTimerAging;
+			_timer.Stop ();
+			_timer = null;
+		}
+
+		#endregion
 
         #region 'Ready2Sell' state
 
@@ -231,8 +270,9 @@ namespace Joi.Brain
 			if (!_tradable)
 				return;
 
-			var us1Ind = (stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex).market.GetIndicator (TimeInterval.MINUTE_1);
-			if (Utility.IsTimeToSell (us1Ind.lastCandle, us1Ind.lastOscillator, _buying))
+			var kr1Ind = (stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone).market.GetIndicator (TimeInterval.MINUTE_1);
+			var kr5Ind = (stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone).market.GetIndicator (TimeInterval.MINUTE_5);
+			if (Utility.IsTimeToSell (kr1Ind.lastCandle, kr1Ind.lastOscillator, kr5Ind.lastOscillator, _buyingKR))
 				Fire (TRIGGER_COMPLETE);
         }
 
@@ -250,24 +290,15 @@ namespace Joi.Brain
 
         private void OnLoopSell()
         {
-//			var kr = stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone;
-//			var krInd = kr.market.GetIndicator (TimeInterval.MINUTE_1);
-//			var krLast = krInd.lastCandle;
-//			var cur = krLast.close;
-//			var benefit = cur * 0.999 - _buying;
-//			_benefit += benefit;
-
-			var us = stateMachines [CrawlerLogic.BITFINEX] as CrawlerBitfinex;
-			var usInd = us.market.GetIndicator (TimeInterval.MINUTE_1);
-			var usLast = usInd.lastCandle;
-
+			var krInd = (stateMachines [CrawlerLogic.COINONE] as CrawlerCoinone).market.GetIndicator (TimeInterval.MINUTE_1);
+			var krLast = krInd.lastCandle;
 
 			// for test
-			var cur = usLast.close;
-			var benefit = usLast.close * 0.999 - _buying;
-			_benefit += benefit;
+			var curKR = krLast.close;
+			var benefitKR = krLast.close * 0.999 - _buyingKR;
+			_benefitKR += benefitKR;
 
-			ConsoleIO.LogLine ("{3} SELL: {0} ({1}, total {2})", (int)cur, (int)benefit, (int)_benefit, DateTime.Now.ToString("F"));
+			ConsoleIO.LogLine ("{3} SELL: W{0} ({1}, total {2})", (int)curKR, (int)benefitKR, (int)_benefitKR, DateTime.Now.ToString("F"));
 			Fire (TRIGGER_SIMULATE);
         }
 
