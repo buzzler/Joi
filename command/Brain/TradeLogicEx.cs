@@ -1,6 +1,7 @@
 ﻿using System;
 using Joi.FSM;
 using Joi.Data;
+using Joi.Data.Chart;
 
 namespace Joi.Brain
 {
@@ -21,9 +22,14 @@ namespace Joi.Brain
 		private	const string TRIGGER_LONGTERM = "longterm";
 		private	const string TRIGGER_MIDTERM = "midterm";
 		private	const string TRIGGER_SHORTTERM = "shortterm";
+		private	const string TRIGGER_BUY = "buy";
+		private	const string TRIGGER_SELL = "sell";
 
         private Symbol _symbol;
 		private CrawlerCoinone _kr;
+		private	Indicator _longterm;
+		private	Indicator _midterm;
+		private Indicator _shorterm;
 
 		public TradeLogicEx(Symbol symbol, bool logging = true) : base("TradeLogicEx", 100, logging)
 		{
@@ -33,8 +39,43 @@ namespace Joi.Brain
 				.SetupLoop (OnInitLoop)
 				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
 			SetState (STATE_BALANCE)
-				.SetupEntry (OnInitBalance)
+				.SetupEntry (OnBalanceEntry)
 				.ConnectTo (TRIGGER_COMPLETE, STATE_AGING);
+			SetState (STATE_AGING)
+				.SetupEntry (OnAgingEntry)
+				.ConnectTo (TRIGGER_LONGTERM, STATE_LONG_BUY)
+				.ConnectTo (TRIGGER_MIDTERM, STATE_MID_BUY)
+				.ConnectTo (TRIGGER_SHORTTERM, STATE_SHORT_BUY);
+			SetState (STATE_LONG_BUY)
+				.SetupLoop (OnLongBuyLoop)
+				.ConnectTo (TRIGGER_SELL, STATE_LONG_SELL)
+				.ConnectTo (TRIGGER_MIDTERM, STATE_MID_BUY)
+				.ConnectTo (TRIGGER_SHORTTERM, STATE_SHORT_BUY);
+			SetState (STATE_MID_BUY)
+				.SetupLoop (OnMidBuyLoop)
+				.ConnectTo (TRIGGER_SELL, STATE_MID_SELL)
+				.ConnectTo (TRIGGER_LONGTERM, STATE_LONG_BUY)
+				.ConnectTo (TRIGGER_SHORTTERM, STATE_SHORT_BUY);
+			SetState (STATE_SHORT_BUY)
+				.SetupLoop (OnShortBuyLoop)
+				.ConnectTo (TRIGGER_SELL, STATE_SHORT_SELL)
+				.ConnectTo (TRIGGER_LONGTERM, STATE_LONG_BUY)
+				.ConnectTo (TRIGGER_MIDTERM, STATE_MID_BUY);
+			SetState (STATE_LONG_SELL)
+				.SetupLoop (OnLongSellLoop)
+				.ConnectTo (TRIGGER_BUY, STATE_LONG_BUY)
+				.ConnectTo (TRIGGER_MIDTERM, STATE_MID_SELL)
+				.ConnectTo (TRIGGER_SHORTTERM, STATE_SHORT_SELL);
+			SetState (STATE_MID_SELL)
+				.SetupLoop (OnMidSellLoop)
+				.ConnectTo (TRIGGER_BUY, STATE_MID_BUY)
+				.ConnectTo (TRIGGER_LONGTERM, STATE_LONG_SELL)
+				.ConnectTo (TRIGGER_SHORTTERM, STATE_SHORT_SELL);
+			SetState (STATE_SHORT_SELL)
+				.SetupLoop (OnShortSellLoop)
+				.ConnectTo (TRIGGER_BUY, STATE_SHORT_BUY)
+				.ConnectTo (TRIGGER_LONGTERM, STATE_LONG_SELL)
+				.ConnectTo (TRIGGER_MIDTERM, STATE_MID_SELL);
 			Start ();
 		}
 
@@ -43,6 +84,7 @@ namespace Joi.Brain
             End();
         }
 
+		#region Init state
 		private void OnInitLoop()
 		{
 			if (stateMachines.ContainsKey (CrawlerLogic.COINONE)) {
@@ -50,13 +92,59 @@ namespace Joi.Brain
 				Fire (TRIGGER_COMPLETE);
 			}
 		}
+		#endregion
 
-		private void OnInitBalance()
+		#region balance state
+		private void OnBalanceEntry()
 		{
 			_kr.GetBalanceAsync (() => {
 				Fire (TRIGGER_COMPLETE);
 			});
 		}
+		#endregion
+
+		#region Aging state
+		private void OnAgingEntry()
+		{
+			
+		}
+		#endregion
+
+		#region Long-Term Buy state
+		private	void OnLongBuyLoop()
+		{
+		}
+		#endregion
+
+		#region Mid-Term Buy state
+		private void OnMidBuyLoop()
+		{
+		}
+		#endregion
+
+		#region Shot-Term Buy state
+		private void OnShortBuyLoop()
+		{
+		}
+		#endregion
+
+		#region Long-Term Sell state
+		private	void OnLongSellLoop()
+		{
+		}
+		#endregion
+
+		#region Mid-Term Sell state
+		private void OnMidSellLoop()
+		{
+		}
+		#endregion
+
+		#region Shot-Term Sell state
+		private void OnShortSellLoop()
+		{
+		}
+		#endregion
     }
 }
 
