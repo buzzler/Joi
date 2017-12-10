@@ -27,9 +27,11 @@ namespace Joi.Brain
 
         private Symbol _symbol;
 		private CrawlerCoinone _kr;
+		private	Indicator _longest;
 		private	Indicator _longterm;
 		private	Indicator _midterm;
 		private Indicator _shorterm;
+		private Indicator _shortest;
 
 		public TradeLogicEx(Symbol symbol, bool logging = true) : base("TradeLogicEx", 100, logging)
 		{
@@ -45,35 +47,42 @@ namespace Joi.Brain
 				.SetupEntry (OnAgingEntry)
 				.ConnectTo (TRIGGER_LONGTERM, STATE_LONG_BUY)
 				.ConnectTo (TRIGGER_MIDTERM, STATE_MID_BUY)
-				.ConnectTo (TRIGGER_SHORTTERM, STATE_SHORT_BUY);
+				.ConnectTo (TRIGGER_SHORTTERM, STATE_SHORT_BUY)
+				.ConnectTo (TRIGGER_ERROR, STATE_BALANCE);
 			SetState (STATE_LONG_BUY)
 				.SetupLoop (OnLongBuyLoop)
+				.ConnectTo (TRIGGER_BUY, STATE_LONG_SELL)
 				.ConnectTo (TRIGGER_SELL, STATE_LONG_SELL)
 				.ConnectTo (TRIGGER_MIDTERM, STATE_MID_BUY)
 				.ConnectTo (TRIGGER_SHORTTERM, STATE_SHORT_BUY);
 			SetState (STATE_MID_BUY)
 				.SetupLoop (OnMidBuyLoop)
+				.ConnectTo (TRIGGER_BUY, STATE_MID_SELL)
 				.ConnectTo (TRIGGER_SELL, STATE_MID_SELL)
 				.ConnectTo (TRIGGER_LONGTERM, STATE_LONG_BUY)
 				.ConnectTo (TRIGGER_SHORTTERM, STATE_SHORT_BUY);
 			SetState (STATE_SHORT_BUY)
 				.SetupLoop (OnShortBuyLoop)
+				.ConnectTo (TRIGGER_BUY, STATE_SHORT_SELL)
 				.ConnectTo (TRIGGER_SELL, STATE_SHORT_SELL)
 				.ConnectTo (TRIGGER_LONGTERM, STATE_LONG_BUY)
 				.ConnectTo (TRIGGER_MIDTERM, STATE_MID_BUY);
 			SetState (STATE_LONG_SELL)
 				.SetupLoop (OnLongSellLoop)
 				.ConnectTo (TRIGGER_BUY, STATE_LONG_BUY)
+				.ConnectTo (TRIGGER_SELL, STATE_LONG_BUY)
 				.ConnectTo (TRIGGER_MIDTERM, STATE_MID_SELL)
 				.ConnectTo (TRIGGER_SHORTTERM, STATE_SHORT_SELL);
 			SetState (STATE_MID_SELL)
 				.SetupLoop (OnMidSellLoop)
 				.ConnectTo (TRIGGER_BUY, STATE_MID_BUY)
+				.ConnectTo (TRIGGER_SELL, STATE_MID_BUY)
 				.ConnectTo (TRIGGER_LONGTERM, STATE_LONG_SELL)
 				.ConnectTo (TRIGGER_SHORTTERM, STATE_SHORT_SELL);
 			SetState (STATE_SHORT_SELL)
 				.SetupLoop (OnShortSellLoop)
 				.ConnectTo (TRIGGER_BUY, STATE_SHORT_BUY)
+				.ConnectTo (TRIGGER_SELL, STATE_SHORT_BUY)
 				.ConnectTo (TRIGGER_LONGTERM, STATE_LONG_SELL)
 				.ConnectTo (TRIGGER_MIDTERM, STATE_MID_SELL);
 			Start ();
@@ -89,6 +98,11 @@ namespace Joi.Brain
 		{
 			if (stateMachines.ContainsKey (CrawlerLogic.COINONE)) {
 				_kr = (CrawlerCoinone)stateMachines [CrawlerLogic.COINONE];
+				_shortest = _kr.market.GetIndicator (TimeInterval.MINUTE_1);
+				_shorterm = _kr.market.GetIndicator (TimeInterval.MINUTE_3);
+				_midterm = _kr.market.GetIndicator (TimeInterval.MINUTE_5);
+				_longterm = _kr.market.GetIndicator (TimeInterval.MINUTE_15);
+				_longest = _kr.market.GetIndicator (TimeInterval.HOUR_1);
 				Fire (TRIGGER_COMPLETE);
 			}
 		}
@@ -106,25 +120,70 @@ namespace Joi.Brain
 		#region Aging state
 		private void OnAgingEntry()
 		{
-			
+			double btc = _kr.market.balance.GetAvailable (Symbol.BITCOIN);
+			double krw = _kr.market.balance.GetAvailable (Symbol.KR_WON);
+
+			if (btc > 0) {
+				Fire (TRIGGER_LONGTERM);
+				Fire (TRIGGER_SELL);
+			} else if (krw > 0) {
+				Fire (TRIGGER_LONGTERM);
+				Fire (TRIGGER_BUY);
+			} else {
+				Fire (TRIGGER_ERROR);
+			}
 		}
 		#endregion
 
 		#region Long-Term Buy state
 		private	void OnLongBuyLoop()
 		{
+			if (_longterm.lastOscillator.decreasing) {
+				Fire (TRIGGER_MIDTERM);
+				return;
+			}
+
+			/**
+			 * long-term buying method
+			 */
+			Fire (TRIGGER_BUY);
 		}
 		#endregion
 
 		#region Mid-Term Buy state
 		private void OnMidBuyLoop()
 		{
+			if (_longterm.lastOscillator.increasing) {
+				Fire (TRIGGER_LONGTERM);
+				return;
+			} else if (_midterm.lastOscillator.decreasing) {
+				Fire (TRIGGER_SHORTTERM);
+				return;
+			}
+
+			/**
+			 * mid-term buying method
+			 */
+			Fire (TRIGGER_BUY);
 		}
 		#endregion
 
 		#region Shot-Term Buy state
 		private void OnShortBuyLoop()
 		{
+			if (_longterm.lastOscillator.increasing) {
+				Fire (TRIGGER_LONGTERM);
+				return;
+			} else if (_midterm.lastOscillator.increasing) {
+				Fire (TRIGGER_MIDTERM);
+				return;
+			}
+
+			/**
+			 * short-term buying method
+			 */
+			if (_shorterm.lastOscillator.increasing)
+				Fire (TRIGGER_BUY);
 		}
 		#endregion
 

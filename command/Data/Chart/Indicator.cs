@@ -21,9 +21,6 @@ namespace Joi.Data.Chart
 		private	List<BollingerBand> _bollingerbands;
 		private	double _avgAmount;
 		private	double _curAmountRatio;
-//		private	double _curDeviationRatio;
-//		private	bool _crossingAboveBB;
-//		private	bool _crossingBelowBB;
 
 		public	List<Candle> candles { get { return _candles; } }
 
@@ -36,12 +33,6 @@ namespace Joi.Data.Chart
 		public	double averageAmount { get { return _avgAmount; } }
 
 		public	double currentAmountRatio { get { return _curAmountRatio; } }
-
-//		public	double currentDeviationRatio { get { return _curDeviationRatio; } }
-//
-//		public	bool crossingAboveBB { get { return _crossingAboveBB; } }
-//
-//		public	bool crossingBelowBB { get { return _crossingBelowBB; } }
 
 		public	Candle lastCandle { get { return _candles [_lastest]; } }
 
