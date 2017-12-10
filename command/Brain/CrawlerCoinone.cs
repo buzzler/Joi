@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Joi.Coinone;
 using Joi.Data;
 using LitJson;
@@ -116,12 +117,21 @@ namespace Joi.Brain
 			var json = _api.GetBalance ();
 			if (json == null)
 				return;
-			var btc = json ["btc"];
-			var eth = json ["eth"];
-			var won = json ["krw"];
-			_market.balance.SetValue (Symbol.BITCOIN, double.Parse (btc ["balance"].ToString ()), double.Parse (btc ["avail"].ToString ()));
-			_market.balance.SetValue (Symbol.ETHEREUM, double.Parse (eth ["balance"].ToString ()), double.Parse (eth ["avail"].ToString ()));
-			_market.balance.SetValue (Symbol.KR_WON, double.Parse (won ["balance"].ToString ()), double.Parse (won ["avail"].ToString ()));
+			
+			var symbols = new Dictionary<Symbol, string> () { 
+				{Symbol.BITCOIN, "btc"},
+				{Symbol.ETHEREUM, "eth"},
+				{Symbol.KR_WON, "krw"}
+			};
+
+			foreach (Symbol key in symbols.Keys) {
+				var symbol = symbols [key];
+				var obj = json [symbol];
+				var balance = double.Parse (obj ["balance"].ToString ());
+				var available = double.Parse (obj ["avail"].ToString ());
+				_market.balance.SetValue (key, balance, available);
+				ConsoleIO.LogLine ("[balance] {0}:{1}({2})", symbol, balance, available);
+			}
 		}
 	}
 }

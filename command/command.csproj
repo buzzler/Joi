@@ -86,6 +86,7 @@
     <Compile Include="Data\Balance.cs" />
     <Compile Include="ConsoleIO.cs" />
     <Compile Include="Data\Chart\Indicator.cs" />
+    <Compile Include="Brain\TradeLogicEx.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
