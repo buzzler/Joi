@@ -169,7 +169,7 @@ namespace Joi.Brain
 					var ts = int.Parse (trade ["timestamp"].ToString ());
 
 					_market.ReserveTrade (tid, price, amount, ts);
-					ExecuteQuery (string.Format ("INSERT OR REPLACE INTO {0} VALUES({1}, {2}, {3}, {4});", name, tid, price, amount, ts));
+//					ExecuteQuery (string.Format ("INSERT OR REPLACE INTO {0} VALUES({1}, {2}, {3}, {4});", name, tid, price, amount, ts));
 				}
 				_market.FlushTrade ();
 				_market.UpdateChart ();
@@ -209,7 +209,7 @@ namespace Joi.Brain
 				var ts = int.Parse(json[len - 3].ToString());
 
 				_market.AddTrade(id, price, amount, ts);
-				ExecuteQuery (string.Format("INSERT OR REPLACE INTO {0} VALUES({1}, {2}, {3}, {4});", name, id, price, amount, ts));
+//				ExecuteQuery (string.Format("INSERT OR REPLACE INTO {0} VALUES({1}, {2}, {3}, {4});", name, id, price, amount, ts));
                 _market.UpdateChart();
             }
             catch (Exception e)

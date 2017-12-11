@@ -52,7 +52,7 @@ namespace Joi.Brain
 		{
             var bitfinex = new CrawlerBitfinex(_symbol, logging);
             var coinone = new CrawlerCoinone(_symbol, logging);
-			var app = new TradeLogic(_symbol, logging);
+			var app = new TradeLogicEx(_symbol, logging);
 
             _threads = new Dictionary<string, Thread>() {
                 { TRADE, new Thread (app.Run) },

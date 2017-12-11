@@ -10,11 +10,19 @@ namespace Joi.Brain
 	{
 		private	Api _api;
 		private	string _currency;
+		private	double _buyFee;
+		private double _sellFee;
+
+		public double buyingFee { get { return _buyFee; } }
+		public double sellingFee { get { return _sellFee; } }
 
 		public CrawlerCoinone (Symbol symbol, bool logging = true) : base (COINONE, Joi.Coinone.Limit.QUERY_TIMEOUT, logging)
 		{
 			_api = new Api ();
 			_market = new Market (name, TimeInterval.DAY_3);
+			_buyFee = 0f;
+			_sellFee = 0f;
+
 			_market.SetIndicator (TimeInterval.MINUTE_1, TimeInterval.HOUR_5);
 			_market.SetIndicator (TimeInterval.MINUTE_3, TimeInterval.HOUR_15);
 			_market.SetIndicator (TimeInterval.MINUTE_5, TimeInterval.HOUR_30);
@@ -39,6 +47,8 @@ namespace Joi.Brain
 		protected override void OnLoopInit ()
 		{
 			ConnectDatabase ();
+			GetUserInfo ();
+			Sleep ();
 			GetTrade ("day");
 			Fire (TRIGGER_COMPLETE);
 		}
@@ -74,6 +84,16 @@ namespace Joi.Brain
 		{
 		}
 
+		private	void GetUserInfo()
+		{
+			var json = _api.GetUserInfomation ();
+			if (json == null)
+				return;
+			json = json ["userInfo"] ["feeRate"] [_currency];
+			_buyFee = double.Parse (json ["maker"].ToString ());
+			_sellFee = double.Parse (json ["taker"].ToString ());
+		}
+
 		private	void GetTrade (string period = "hour")
 		{
 			var json = _api.GetCompleteOrders (_currency, period);
@@ -94,7 +114,7 @@ namespace Joi.Brain
 				var amount = double.Parse (trade ["qty"].ToString ());
 
 				_market.ReserveTrade (timestamp, price, amount, timestamp);
-				ExecuteQuery (string.Format("INSERT OR REPLACE INTO {0} VALUES({1}, {2}, {3}, {4});", name, timestamp, price, amount, timestamp));
+//				ExecuteQuery (string.Format("INSERT OR REPLACE INTO {0} VALUES({1}, {2}, {3}, {4});", name, timestamp, price, amount, timestamp));
 			}
 			_market.FlushTrade ();
 			_market.UpdateChart ();
@@ -133,7 +153,6 @@ namespace Joi.Brain
 				var balance = double.Parse (obj ["balance"].ToString ());
 				var available = double.Parse (obj ["avail"].ToString ());
 				_market.balance.SetValue (key, balance, available);
-				ConsoleIO.LogLine ("[balance] {0}:{1}({2})", symbol, balance, available);
 			}
 		}
 	}
