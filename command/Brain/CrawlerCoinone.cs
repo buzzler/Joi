@@ -23,11 +23,7 @@ namespace Joi.Brain
 			_buyFee = 0f;
 			_sellFee = 0f;
 
-			_market.SetIndicator (TimeInterval.MINUTE_1, TimeInterval.HOUR_5);
-			_market.SetIndicator (TimeInterval.MINUTE_3, TimeInterval.HOUR_15);
-			_market.SetIndicator (TimeInterval.MINUTE_5, TimeInterval.HOUR_30);
-			_market.SetIndicator (TimeInterval.MINUTE_15, TimeInterval.DAY_2);
-			_market.SetIndicator (TimeInterval.HOUR_1, TimeInterval.DAY_3);
+			_market.SetIndicator (TimeInterval.MINUTE_30, TimeInterval.DAY_3);
 
 			// convert symbol
 			switch (symbol) {
@@ -114,7 +110,6 @@ namespace Joi.Brain
 				var amount = double.Parse (trade ["qty"].ToString ());
 
 				_market.ReserveTrade (timestamp, price, amount, timestamp);
-//				ExecuteQuery (string.Format("INSERT OR REPLACE INTO {0} VALUES({1}, {2}, {3}, {4});", name, timestamp, price, amount, timestamp));
 			}
 			_market.FlushTrade ();
 			_market.UpdateChart ();

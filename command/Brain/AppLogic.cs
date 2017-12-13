@@ -5,6 +5,7 @@ using Joi.Data;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 
 namespace Joi.Brain
 {
@@ -50,13 +51,15 @@ namespace Joi.Brain
 
 		private	void OnEntryInit ()
 		{
-            var bitfinex = new CrawlerBitfinex(_symbol, logging);
+			ServicePointManager.DefaultConnectionLimit = 200;
+
+//            var bitfinex = new CrawlerBitfinex(_symbol, logging);
             var coinone = new CrawlerCoinone(_symbol, logging);
-			var app = new TradeLogicEx(_symbol, logging);
+			var app = new TradeLogic(_symbol, logging);
 
             _threads = new Dictionary<string, Thread>() {
                 { TRADE, new Thread (app.Run) },
-                { CrawlerLogic.BITFINEX, new Thread (bitfinex.Run) },
+//                { CrawlerLogic.BITFINEX, new Thread (bitfinex.Run) },
                 { CrawlerLogic.COINONE, new Thread (coinone.Run) }
             };
 			foreach (var thread in _threads.Values)
@@ -222,18 +225,37 @@ namespace Joi.Brain
 		private	void OnSelectTrade ()
 		{
 			ConsoleIO.Clear ();
+			ConsoleIO.WriteLine ("1. Toggle Buying");
+			ConsoleIO.WriteLine ("2. Toggle Selling");
+			ConsoleIO.WriteLine ();
+			ConsoleIO.Write ("> ");
+			ConsoleIO.ShowCursor ();
+			int input = ConsoleIO.Read ();
+			ConsoleIO.HideCursor ();
+			ConsoleIO.WriteLine ();
 
 			var sm = stateMachines [TRADE] as TradeLogic;
-			if (sm.IsTradable) {
-				sm.TradeOff ();
-				ConsoleIO.WriteLine ("Trade Off");
-			} else {
-				sm.TradeOn ();
-				ConsoleIO.WriteLine ("Trade On");
+			switch (input) {
+			case 49:
+				if (sm.EnableBuying) {
+					sm.StopBuying ();
+					ConsoleIO.WriteLine ("buying disabled");
+				} else {
+					sm.StartBuying ();
+					ConsoleIO.WriteLine ("buying enabled");
+				}
+				break;
+			case 50:
+				if (sm.EnableSelling) {
+					sm.StopSell ();
+					ConsoleIO.WriteLine ("selling disabled");
+				} else {
+					sm.StartSell ();
+					ConsoleIO.WriteLine ("selling enabled");
+				}
+				break;
 			}
-
-			ConsoleIO.WriteLine ("Press any key to return...");
-			ConsoleIO.Read ();
+			Thread.Sleep (2000);
 		}
 
 		private	void OnSelectExit ()

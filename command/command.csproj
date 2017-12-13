@@ -65,7 +65,6 @@
     <Compile Include="Coinone\Limit.cs" />
     <Compile Include="FSM\StateMachine.cs" />
     <Compile Include="FSM\State.cs" />
-    <Compile Include="Brain\TradeLogic.cs" />
     <Compile Include="Brain\AppLogic.cs" />
     <Compile Include="Brain\CrawlerLogic.cs" />
     <Compile Include="Brain\CrawlerCoinone.cs" />
@@ -86,7 +85,7 @@
     <Compile Include="Data\Balance.cs" />
     <Compile Include="ConsoleIO.cs" />
     <Compile Include="Data\Chart\Indicator.cs" />
-    <Compile Include="Brain\TradeLogicEx.cs" />
+    <Compile Include="Brain\TradeLogic.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

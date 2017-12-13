@@ -23,8 +23,14 @@ namespace Joi
 					using (var stream = response.GetResponseStream ()) {
 						using (var reader = new StreamReader (stream)) {
 							result = JsonMapper.ToObject (reader.ReadToEnd ());
+							reader.Close();
+							reader.Dispose();
 						}
+						stream.Close();
+						stream.Dispose();
 					}
+					response.Close();
+					response.Dispose();
 				}
 			} catch (Exception e) {
 				ConsoleIO.Error (e.Message);

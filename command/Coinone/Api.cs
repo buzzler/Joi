@@ -272,16 +272,22 @@ namespace Joi.Coinone
 			var hash = hmac.ComputeHash (UTF8Encoding.UTF8.GetBytes (payload_base64));
 			var signature = Utility.HexStringFromBytes (hash);
 
-			var request = HttpWebRequest.Create (string.Format("{0}/v2/{1}", Key.URL, uri));
+			HttpWebRequest request = (HttpWebRequest) HttpWebRequest.Create (string.Format("{0}/v2/{1}", Key.URL, uri));
 			request.Method = "POST";
 			request.Headers.Set ("X-COINONE-PAYLOAD", payload_base64);
 			request.Headers.Set ("X-COINONE-SIGNATURE", signature);
 			request.ContentType = "application/json";
 			request.ContentLength = payload_byte.Length;
 
+			request.AllowAutoRedirect = true;
+			request.KeepAlive = true;
+			request.SendChunked = true;
+			request.Timeout = 120000;
+			request.UseDefaultCredentials = true;
+
 			using (var stream = request.GetRequestStream ())
 				stream.Write (payload_byte, 0, payload_byte.Length);
-
+			
 			return _GetCommonResponse (request);
 		}
 
