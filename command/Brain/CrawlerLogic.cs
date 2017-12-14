@@ -21,6 +21,7 @@ namespace Joi.Brain
 		protected Action _onDump;
 		protected Action _onTicker;
 		protected Action _onBalance;
+		protected Action _onOrderBook;
 		private	object _lock;
 		private SqliteConnection _connection;
 		private	SqliteCommand _command;
@@ -89,6 +90,12 @@ namespace Joi.Brain
 					GetBalance ();
 					_onBalance ();
 					_onBalance = null;
+					Sleep ();
+				}
+				if (_onOrderBook != null) {
+					GetOrderBook ();
+					_onOrderBook ();
+					_onOrderBook = null;
 					Sleep ();
 				}
 			}
@@ -264,6 +271,17 @@ namespace Joi.Brain
 		}
 
 		protected virtual void GetBalance()
+		{
+		}
+
+		public	void GetOrderBookAsync(Action callback)
+		{
+			lock (_lock) {
+				_onOrderBook = callback;
+			}
+		}
+
+		protected virtual void GetOrderBook()
 		{
 		}
 

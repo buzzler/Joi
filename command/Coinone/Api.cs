@@ -279,12 +279,6 @@ namespace Joi.Coinone
 			request.ContentType = "application/json";
 			request.ContentLength = payload_byte.Length;
 
-			request.AllowAutoRedirect = true;
-			request.KeepAlive = true;
-			request.SendChunked = true;
-			request.Timeout = 120000;
-			request.UseDefaultCredentials = true;
-
 			using (var stream = request.GetRequestStream ())
 				stream.Write (payload_byte, 0, payload_byte.Length);
 			
@@ -293,11 +287,21 @@ namespace Joi.Coinone
 
 		private	JsonData _GetV1Response (string uri)
 		{
-			return _GetCommonResponse (WebRequest.Create (string.Format("{0}/{1}", Key.URL, uri)));
+			HttpWebRequest request = (HttpWebRequest)WebRequest.Create (string.Format ("{0}/{1}", Key.URL, uri));
+			request.Method = "GET";
+			request.ContentType = "application/text";
+
+			return _GetCommonResponse (request);
 		}
 
-		private	JsonData _GetCommonResponse (WebRequest request)
+		private	JsonData _GetCommonResponse (HttpWebRequest request)
 		{
+			request.AllowAutoRedirect = true;
+			request.KeepAlive = true;
+//			request.SendChunked = true;
+			request.Timeout = 120000;
+			request.UseDefaultCredentials = true;
+
 			var json = Utility.GetResponse (request);
 			if (json == null) {
 				ConsoleIO.Error ("no response: {0}", request.RequestUri);

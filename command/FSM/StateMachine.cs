@@ -12,6 +12,7 @@ namespace Joi.FSM
 		private	bool _enable;
 		private	bool _log;
 		private	int _timeout;
+		private	float _speed;
 		private	string _name;
 		private State _first;
 		private	State _prev;
@@ -70,6 +71,7 @@ namespace Joi.FSM
 			_enable = false;
 			_log = logging;
 			_timeout = timeout;
+			_speed = 1f;
 			_name = name;
 			_first = null;
 			_prev = null;
@@ -127,6 +129,11 @@ namespace Joi.FSM
 			return _any;
 		}
 
+		public	void SetSpeed(float speed)
+		{
+			_speed = speed;
+		}
+
 		/// <summary>
 		/// Start this instance.
 		/// </summary>
@@ -155,7 +162,7 @@ namespace Joi.FSM
 			if (time > 0)
 				System.Threading.Thread.Sleep (time);
 			else if (_timeout > 0)
-				System.Threading.Thread.Sleep (_timeout);
+				System.Threading.Thread.Sleep ((int)((float)_timeout / _speed));
 		}
 
 		/// <summary>

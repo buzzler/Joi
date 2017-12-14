@@ -15,6 +15,7 @@ namespace Joi.Data
 		private	List<int> _ids;
 		private	Ticker _ticker;
 		private	Balance _balance;
+		private	OrderBook _orderbook;
 		private	Dictionary <TimeInterval, Indicator> _indicators;
 
 		public	string name { get { return _name; } }
@@ -22,6 +23,8 @@ namespace Joi.Data
 		public	Ticker ticker { get { return _ticker; } }
 
 		public	Balance balance { get { return _balance; } }
+
+		public	OrderBook orderbook { get { return _orderbook; } }
 
 		public	Market (string name, TimeInterval limit = TimeInterval.DAY_3)
 		{
@@ -32,6 +35,7 @@ namespace Joi.Data
 			_ids = new List<int> ();
 			_ticker = new Ticker ();
 			_balance = new Balance ();
+			_orderbook = new OrderBook ();
 			_indicators = new Dictionary<TimeInterval, Indicator> ();
 		}
 

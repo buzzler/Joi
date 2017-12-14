@@ -53,13 +53,11 @@ namespace Joi.Brain
 		{
 			ServicePointManager.DefaultConnectionLimit = 200;
 
-//            var bitfinex = new CrawlerBitfinex(_symbol, logging);
             var coinone = new CrawlerCoinone(_symbol, logging);
 			var app = new TradeLogic(_symbol, logging);
 
             _threads = new Dictionary<string, Thread>() {
                 { TRADE, new Thread (app.Run) },
-//                { CrawlerLogic.BITFINEX, new Thread (bitfinex.Run) },
                 { CrawlerLogic.COINONE, new Thread (coinone.Run) }
             };
 			foreach (var thread in _threads.Values)

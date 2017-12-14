@@ -12,6 +12,8 @@ namespace Joi.Brain
 		private	string _currency;
 		private	double _buyFee;
 		private double _sellFee;
+		private bool _gatherTrade;
+		private bool _gatherOrderBook;
 
 		public double buyingFee { get { return _buyFee; } }
 		public double sellingFee { get { return _sellFee; } }
@@ -22,6 +24,8 @@ namespace Joi.Brain
 			_market = new Market (name, TimeInterval.DAY_3);
 			_buyFee = 0f;
 			_sellFee = 0f;
+			_gatherTrade = true;
+			_gatherOrderBook = false;
 
 			_market.SetIndicator (TimeInterval.MINUTE_30, TimeInterval.DAY_3);
 
@@ -36,6 +40,18 @@ namespace Joi.Brain
 			}
 		}
 
+		public	void GatherTrade()
+		{
+			_gatherTrade = true;
+			_gatherOrderBook = false;
+		}
+
+		public	void GatherOrderBook()
+		{
+			_gatherTrade = false;
+			_gatherOrderBook = true;
+		}
+
 		protected override void OnEntryInit ()
 		{
 		}
@@ -43,9 +59,17 @@ namespace Joi.Brain
 		protected override void OnLoopInit ()
 		{
 			ConnectDatabase ();
+			SetSpeed (2f);
 			GetUserInfo ();
 			Sleep ();
+			GetBalance ();
+			Sleep ();
+			GetOrderBook ();
+			Sleep ();
+			GetTicker ();
+			Sleep ();
 			GetTrade ("day");
+			SetSpeed (1f);
 			Fire (TRIGGER_COMPLETE);
 		}
 
@@ -60,7 +84,10 @@ namespace Joi.Brain
 		protected override void OnLoopGather ()
 		{
 			base.OnLoopGather ();
-			GetTrade ();
+			if (_gatherTrade)
+				GetTrade ();
+			if (_gatherOrderBook)
+				GetOrderBook ();
 		}
 
 		protected override void OnExitGather ()
@@ -149,6 +176,30 @@ namespace Joi.Brain
 				var available = double.Parse (obj ["avail"].ToString ());
 				_market.balance.SetValue (key, balance, available);
 			}
+		}
+
+		protected override void GetOrderBook ()
+		{
+			var json = _api.GetOrderbook (_currency);
+			if (json == null)
+				return;
+
+			var ob = _market.orderbook;
+			var timestamp = int.Parse (json ["timestamp"].ToString ());
+			var bids = json ["bid"];
+			var asks = json ["ask"];
+
+			ob.Clear (timestamp);
+			for (int i = bids.Count - 1; i >= 0; i--) {
+				var item = bids [i];
+				ob.AddBid (double.Parse (item ["price"].ToString ()), double.Parse (item ["qty"].ToString ()));
+			}
+			for (int i = asks.Count - 1; i >= 0; i--) {
+				var item = asks [i];
+				ob.AddAsk (double.Parse (item ["price"].ToString ()), double.Parse (item ["qty"].ToString ()));
+			}
+
+			ConsoleIO.WriteLine ("ORDERBOOK: high {0}, low {1}, {2}", ob.GetHighestBid (), ob.GetLowestAsk (), Utility.DateTime (timestamp).ToString ("T"));
 		}
 	}
 }
