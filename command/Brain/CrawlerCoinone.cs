@@ -198,8 +198,6 @@ namespace Joi.Brain
 				var item = asks [i];
 				ob.AddAsk (double.Parse (item ["price"].ToString ()), double.Parse (item ["qty"].ToString ()));
 			}
-
-			ConsoleIO.WriteLine ("ORDERBOOK: high {0}, low {1}, {2}", ob.GetHighestBid (), ob.GetLowestAsk (), Utility.DateTime (timestamp).ToString ("T"));
 		}
 	}
 }

@@ -235,9 +235,11 @@ namespace Joi.Brain
 
 		private void OnBuyingLoop()
 		{
-			// TODO
-			var price = _orderbook.GetLowestAsk();
+			var past = Utility.Timestamp (DateTime.Now) - _orderbook.timestamp;
+			if (past > 10)
+				return;
 
+			var price = _orderbook.GetLowestAsk();
 			LogBuy ("LONG", price);
 			Fire (TRIGGER_COMPLETE);
 		}
@@ -258,9 +260,11 @@ namespace Joi.Brain
 
 		private	void OnSellingLoop()
 		{
-			// TODO
-			var price = _orderbook.GetHighestBid();
+			var past = Utility.Timestamp (DateTime.Now) - _orderbook.timestamp;
+			if (past > 10)
+				return;
 
+			var price = _orderbook.GetHighestBid();
 			LogSell ("LONG", price);
 			Fire (TRIGGER_COMPLETE);
 		}
@@ -292,6 +296,11 @@ namespace Joi.Brain
 			ConsoleIO.LogLine ("{0}-term buy: {1} won ({2})", term, price.ToString ("N"), DateTime.Now.ToString ("T"));
 			ConsoleIO.LogLine ("{0}-term earning: {1} won (total {2} won)", term, benefit.ToString ("N"), _earning.ToString ("N"));
 			ConsoleIO.LogLine ("{0}-term earning rate: -{1} % (total {2} %)", term, _kr.buyingFee.ToString ("##.000"), _earningrate.ToString ("##.000"));
+			ConsoleIO.LogLine ("bollingerband: high {0}, low {1}, ratio {2}", 
+				_indicator.lastBollingerBand.highband.ToString ("##.000"),
+				_indicator.lastBollingerBand.lowband.ToString ("##.000"),
+				_indicator.lastBollingerBand.deviationRatio
+			);
 		}
 
 		private	void LogSell(string term, double price)
@@ -303,6 +312,11 @@ namespace Joi.Brain
 			ConsoleIO.LogLine ("{0}-term sell: {1} won ({2})", term, price.ToString ("N"), DateTime.Now.ToString ("T"));
 			ConsoleIO.LogLine ("{0}-term earning: {1} won (total {2} won)", term, benefit, _earning.ToString("N"));
 			ConsoleIO.LogLine ("{0}-term earning rate: {1} % (total {2} %)", term, rate.ToString("##.000"), _earningrate.ToString ("##.000"));
+			ConsoleIO.LogLine ("bollingerband: high {0}, low {1}, ratio {2}", 
+				_indicator.lastBollingerBand.highband.ToString ("##.000"),
+				_indicator.lastBollingerBand.lowband.ToString ("##.000"),
+				_indicator.lastBollingerBand.deviationRatio
+			);
 		}
 
 		private double CalculateEarning(double price)
