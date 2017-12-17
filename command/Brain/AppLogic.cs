@@ -133,7 +133,8 @@ namespace Joi.Brain
 			ConsoleIO.WriteLine ("2. Show Status");
 			ConsoleIO.WriteLine ("3. Show Log");
 			ConsoleIO.WriteLine ("4. Trade On/Off");
-			ConsoleIO.WriteLine ("5. Exit");
+			ConsoleIO.WriteLine ("5. Analysis");
+			ConsoleIO.WriteLine ("6. Exit");
 			ConsoleIO.WriteLine ();
 			ConsoleIO.Write ("> ");
 			ConsoleIO.ShowCursor ();
@@ -154,6 +155,9 @@ namespace Joi.Brain
 				OnSelectTrade ();
 				break;
 			case 53:
+				OnSelectAnalysis ();
+				break;
+			case 54:
 				OnSelectExit ();
 				break;
 			}
@@ -254,6 +258,19 @@ namespace Joi.Brain
 				break;
 			}
 			Thread.Sleep (2000);
+		}
+
+		private	 void OnSelectAnalysis ()
+		{
+			ConsoleIO.Clear ();
+			ConsoleIO.Write ("analyzing...");
+			var sm = stateMachines [TRADE] as TradeLogic;
+			var filename = sm.Analysis ();
+			ConsoleIO.Write ("done!");
+			Thread.Sleep (2000);
+
+			if (File.Exists (filename))
+				Process.Start (filename);
 		}
 
 		private	void OnSelectExit ()

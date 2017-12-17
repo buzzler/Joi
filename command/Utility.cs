@@ -70,57 +70,48 @@ namespace Joi
 			return dtDateTime;
 		}
 
-		public	static bool IsTimeToSell(Candle candle_1m, MACDOscillator oscillator_1m, MACDOscillator oscillator_5m, double bought = 0)
+		public	static bool IsTimeToBuy(Indicator indicator, Candle candle, BollingerBand bb, MACDOscillator os)
 		{
-//			if ((bought > 0) && (bought * 1.001 > candle_1m.close))
+//			if (os.decreasing) {
 //				return false;
+//			}
+//			if (bb.crossingBelow || bb.deviationRatio <= -1)
+//				return true;
+//			return false;
 
-			if (bought > 0) {
-				var fee = bought * 0.001;
-				var benefit = Math.Abs(candle_1m.close - bought);
-				if (fee >= benefit)
+			// test
+
+			if (os.decreasing) {
+				return false;
+			}
+			if (bb.crossingBelow || bb.deviationRatio <= -0.9)
+				return true;
+			return false;
+		}
+
+		public	static bool IsTimeToSell(Indicator indicator, Candle candle, BollingerBand bb, MACDOscillator os, double bought, double feerate)
+		{
+//			if (os.decreasing) {
+//				if ((candle.close * (1 - feerate)) < bought)
+//					return true;
+//				else
+//					return false;
+//			}
+//			if (bb.crossingAbove || bb.deviationRatio >= 1) {
+//				return true;
+//			}
+//			return false;
+
+			// test
+
+			if (os.decreasing) {
+				if ((candle.close * (1 - feerate)) < bought)
+					return true;
+				else
 					return false;
 			}
-
-			if (oscillator_1m.decreasing) {
-				if (oscillator_5m.decreasing)
-					return true;
-			}
-
-			return false;
-		}
-
-		public	static bool IsTimeToReadyBuying(BollingerBand bb_1m, MACDOscillator oscillator_1m, MACDOscillator oscillator_5m)
-		{
-//			var result = (bb_1m.deviationRatio < -0.7);
-//			if (result) {
-//				ConsoleIO.LogLine ("[BollingerBand] high:{0}, value:{1}, low:{2}, ratio:{3}", bb_1m.highband, bb_1m.value, bb_1m.lowband, bb_1m.deviationRatio);
-//				return true;
-//			}
-
-			var result = (oscillator_1m.increasing && oscillator_5m.increasing);
-			if (result) {
-				ConsoleIO.LogLine ("[Oscillator] increasing");
+			if (bb.deviationRatio >= 0.9)
 				return true;
-			}
-
-			return false;
-		}
-
-		public	static bool IsTimeToBuying(BollingerBand bb_1m, MACDOscillator oscillator_1m, MACDOscillator oscillator_5m)
-		{
-			var result = (bb_1m.deviationRatio > -0.6 && oscillator_1m.increasing);
-			if (result) {
-				ConsoleIO.LogLine ("[BollingerBand] high:{0}, value:{1}, low:{2}, ratio:{3}", bb_1m.highband, bb_1m.value, bb_1m.lowband, bb_1m.deviationRatio);
-				return true;
-			}
-
-//			result = (oscillator_1m.increasing && oscillator_5m.increasing);
-//			if (result) {
-//				ConsoleIO.LogLine ("[Oscillator] increasing");
-//				return true;
-//			}
-
 			return false;
 		}
 	}

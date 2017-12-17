@@ -62,7 +62,7 @@ namespace Joi.Brain
 		protected override void OnLoopInit ()
 		{
 			ConnectDatabase ();
-			SetSpeed (2f);
+			SetSpeed (3f);
 			GetUserInfo ();
 			Sleep ();
 			GetBalance ();

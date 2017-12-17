@@ -1,27 +1,13 @@
 ﻿<Properties RefactoringSettings.EnableRefactorings="True" StartupConfiguration="{95017E2B-1594-4EF3-A7BA-551FCAFAC1B5}|Default" StartupItem="command/command.csproj">
-  <MonoDevelop.Ide.Workbench ActiveDocument="command/Brain/TradeLogicEx.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="command/Utility.cs">
     <Files>
-      <File FileName="command/Brain/CrawlerCoinone.cs" Line="22" Column="67" />
-      <File FileName="command/Brain/TradeLogicEx.cs" Line="193" Column="4" />
+      <File FileName="command/Brain/TradeLogic.cs" Line="167" Column="17" />
+      <File FileName="command/Utility.cs" Line="85" Column="18" />
+      <File FileName="command/Brain/CrawlerLogic.cs" Line="3" Column="1" />
+      <File FileName="command/Brain/CrawlerCoinone.cs" Line="65" Column="15" />
+      <File FileName="command/Data/Market.cs" Line="19" Column="41" />
+      <File FileName="command/Brain/AppLogic.cs" Line="273" Column="28" />
     </Files>
-    <Pads>
-      <Pad Id="ProjectPad">
-        <State name="__root__">
-          <Node name="Joi" expanded="True">
-            <Node name="command" expanded="True">
-              <Node name="Bitfinex" expanded="True" />
-              <Node name="Brain" expanded="True">
-                <Node name="TradeLogicEx.cs" selected="True" />
-              </Node>
-              <Node name="Data" expanded="True">
-                <Node name="Chart" expanded="True" />
-              </Node>
-              <Node name="FSM" expanded="True" />
-            </Node>
-          </Node>
-        </State>
-      </Pad>
-    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

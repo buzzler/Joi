@@ -1,4 +1,5 @@
 ﻿using System;
+using Mono.Data.Sqlite;
 using Joi.FSM;
 using Joi.Data;
 using Joi.Data.Chart;
@@ -127,6 +128,73 @@ namespace Joi.Brain
 			_enableBuy = false;
 		}
 
+		public	string Analysis()
+		{
+			var filename = "analysis.db";
+			if (System.IO.File.Exists (filename))
+				System.IO.File.Delete (filename);
+
+			var connsb = new SqliteConnectionStringBuilder ();
+			connsb.DataSource = filename;
+			using (var connection = new SqliteConnection (connsb.ConnectionString)) {
+				connection.Open ();
+				using (var command = connection.CreateCommand ()) {
+					var sb = new System.Text.StringBuilder ();
+					sb.AppendFormat ("CREATE TABLE {0} (", _kr.name);
+					sb.Append ("id INTEGER PRIMARY KEY AUTOINCREMENT,");
+					sb.Append ("value REAL,");
+					sb.Append ("bbhigh REAL,");
+					sb.Append ("bbmid REAL,");
+					sb.Append ("bblow REAL,");
+					sb.Append ("buy INTEGER,");
+					sb.Append ("sell INTEGER);");
+					command.CommandText = sb.ToString ();
+					command.ExecuteNonQuery ();
+
+					bool buy = true;
+					double bought = 0;
+
+					for (int i = 0; i < _indicator.count; i++) {
+						var candle = _indicator.candles [i];
+						var bb = _indicator.bollingerbands [i];
+						var os = _indicator.oscillators [i];
+
+						if (!candle.valid)
+							continue;
+						if (bb.value == 0)
+							continue;
+						if (bb.highband == bb.lowband)
+							continue;
+						if (!os.valid)
+							continue;
+
+						var b = (buy) ? (Utility.IsTimeToBuy (_indicator, candle, bb, os) ? 1 : 0) : 0;
+						var s = (!buy) ? (Utility.IsTimeToSell (_indicator, candle, bb, os, bought, _kr.sellingFee) ? 1 : 0) : 0;
+
+						sb.Clear ();
+						sb.AppendFormat ("INSERT INTO {0} (value, bbhigh, bbmid, bblow, buy, sell) VALUES (", _kr.name);
+						sb.AppendFormat ("{0},", candle.close);
+						sb.AppendFormat ("{0},", bb.highband);
+						sb.AppendFormat ("{0},", bb.value);
+						sb.AppendFormat ("{0},", bb.lowband);
+						sb.AppendFormat ("{0},", b);
+						sb.AppendFormat ("{0});", s);
+						command.CommandText = sb.ToString ();
+						command.ExecuteNonQuery ();
+
+						if (b == 1) {
+							buy = false;
+							bought = candle.close;
+						} else if (s == 1) {
+							buy = true;
+						}
+					}
+				}
+			}
+
+			return filename;
+		}
+
 		#endregion
 
 		#region Init state
@@ -184,19 +252,11 @@ namespace Joi.Brain
 
 		private	void OnLongBuyLoop()
 		{
-//			if (_indicator.lastOscillator.decreasing) {
-//				Fire (TRIGGER_SHORTTERM);
-//				return;
-//			}
+			if (!_enableBuy)
+				return;
 
-			if (_enableBuy) {
-//				if (_indicator.lastBollingerBand.crossingBelow || _indicator.lastBollingerBand.deviationRatio <= -1)
-//					Fire (TRIGGER_BUY);
-
-				if (_indicator.lastBollingerBand.deviationRatio <= -0.9 ||
-					(_indicator.lastCandle.low < _indicator.lastBollingerBand.lowband && _indicator.lastCandle.close > _indicator.lastBollingerBand.lowband))
-					Fire (TRIGGER_BUY);
-			}
+			if (Utility.IsTimeToBuy (_indicator, _indicator.lastCandle, _indicator.lastBollingerBand, _indicator.lastOscillator))
+				Fire (TRIGGER_BUY);
 		}
 		#endregion
 
@@ -221,19 +281,11 @@ namespace Joi.Brain
 
 		private	void OnLongSellLoop()
 		{
-//			if (_indicator.lastOscillator.decreasing) {
-//				Fire (TRIGGER_SHORTTERM);
-//				return;
-//			}
+			if (!_enableSell)
+				return;
 
-			if (_enableSell) {
-//				if (_indicator.lastBollingerBand.crossingAbove || _indicator.lastBollingerBand.deviationRatio >= 1)
-//					Fire (TRIGGER_SELL);
-
-				if (_indicator.lastBollingerBand.deviationRatio >= 0.9 || 
-					(_indicator.lastCandle.high > _indicator.lastBollingerBand.highband && _indicator.lastCandle.close < _indicator.lastBollingerBand.highband))
-					Fire (TRIGGER_SELL);
-			}
+			if (Utility.IsTimeToSell (_indicator, _indicator.lastCandle, _indicator.lastBollingerBand, _indicator.lastOscillator, _bought, _kr.sellingFee))
+				Fire (TRIGGER_SELL);
 		}
 		#endregion
 

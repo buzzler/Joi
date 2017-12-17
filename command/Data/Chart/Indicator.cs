@@ -22,6 +22,8 @@ namespace Joi.Data.Chart
 		private	double _avgAmount;
 		private	double _curAmountRatio;
 
+		public	int count { get { return _count; } }
+
 		public	List<Candle> candles { get { return _candles; } }
 
 		public	List<MACDOscillator> oscillators { get { return _oscillators; } }
