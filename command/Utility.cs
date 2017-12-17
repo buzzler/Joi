@@ -84,10 +84,17 @@ namespace Joi
 			if (os.decreasing) {
 				return false;
 			}
-			if (bb.crossingBelow || bb.deviationRatio <= -0.9)
+			if (bb.crossingBelow) {
+				crossingBuy = true;
 				return true;
+			} else if (bb.deviationRatio <= -0.9) {
+				crossingBuy = false;
+				return true;
+			}
 			return false;
 		}
+
+		public	static bool crossingBuy = false;
 
 		public	static bool IsTimeToSell(Indicator indicator, Candle candle, BollingerBand bb, MACDOscillator os, double bought, double feerate)
 		{
@@ -110,7 +117,10 @@ namespace Joi
 				else
 					return false;
 			}
-			if (bb.deviationRatio >= 0.9)
+
+			if (crossingBuy && bb.deviationRatio >= 0.9)
+				return true;
+			if (!crossingBuy && bb.crossingAbove)
 				return true;
 			return false;
 		}
