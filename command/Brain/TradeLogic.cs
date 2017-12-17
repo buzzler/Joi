@@ -25,6 +25,7 @@ namespace Joi.Brain
 		private	const string TRIGGER_BUY = "buy";
 		private	const string TRIGGER_SELL = "sell";
 
+		private	const TimeInterval _interval = TimeInterval.MINUTE_15;
 		private CrawlerCoinone _kr;
 		private	Indicator _indicator;
 		private	OrderBook _orderbook;
@@ -33,9 +34,13 @@ namespace Joi.Brain
 		private	double _earning;
 		private	bool _enableBuy;
 		private bool _enableSell;
+		private	bool _simulation;
 
-		public TradeLogic(Symbol symbol, bool logging = true) : base("TradeLogic", 100, logging)
+		public	bool simulation { get { return _simulation; } }
+
+		public TradeLogic(Symbol symbol, bool logging = true, bool simulation = true) : base("TradeLogic", 100, logging)
 		{
+			_simulation = simulation;
 			_bought = 0;
 			_earningrate = 0;
 			_earning = 0;
@@ -80,12 +85,14 @@ namespace Joi.Brain
 				.SetupEntry (OnBuyingEntry)
 				.SetupLoop (OnBuyingLoop)
 				.SetupExit (OnBuyingExit)
-				.ConnectTo (TRIGGER_COMPLETE, STATE_LONG_SELL);
+				.ConnectTo (TRIGGER_BUY, STATE_LONG_SELL)
+				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
 			SetState (STATE_SELLING)
 				.SetupEntry (OnSellingEntry)
 				.SetupLoop (OnSellingLoop)
 				.SetupExit (OnSellingExit)
-				.ConnectTo (TRIGGER_COMPLETE, STATE_LONG_BUY);
+				.ConnectTo (TRIGGER_SELL, STATE_LONG_BUY)
+				.ConnectTo (TRIGGER_COMPLETE, STATE_BALANCE);
 			Start ();
 		}
 
@@ -127,7 +134,7 @@ namespace Joi.Brain
 		{
 			if (stateMachines.ContainsKey (CrawlerLogic.COINONE)) {
 				_kr = (CrawlerCoinone)stateMachines [CrawlerLogic.COINONE];
-				_indicator = _kr.market.GetIndicator (TimeInterval.MINUTE_30);
+				_indicator = _kr.market.GetIndicator (_interval);
 				_orderbook = _kr.market.orderbook;
 				_bought = 0;
 				_earningrate = 0;
@@ -155,7 +162,18 @@ namespace Joi.Brain
 
 		private void OnAgingLoop()
 		{
-			Fire (TRIGGER_BUY);
+			if (simulation) {
+				Fire (TRIGGER_BUY);
+			} else {
+				var balance = _kr.market.balance;
+//				var krw = balance.GetAvailable (Symbol.KR_WON);
+				var btc = balance.GetAvailable (Symbol.BITCOIN);
+
+				if (btc > 0.0001)
+					Fire (TRIGGER_SELL);
+				else
+					Fire (TRIGGER_BUY);
+			}
 		}
 		#endregion
 
@@ -166,13 +184,17 @@ namespace Joi.Brain
 
 		private	void OnLongBuyLoop()
 		{
-			if (_indicator.lastOscillator.decreasing) {
-				Fire (TRIGGER_SHORTTERM);
-				return;
-			}
+//			if (_indicator.lastOscillator.decreasing) {
+//				Fire (TRIGGER_SHORTTERM);
+//				return;
+//			}
 
 			if (_enableBuy) {
-				if (_indicator.lastBollingerBand.crossingBelow || _indicator.lastBollingerBand.deviationRatio <= -1)
+//				if (_indicator.lastBollingerBand.crossingBelow || _indicator.lastBollingerBand.deviationRatio <= -1)
+//					Fire (TRIGGER_BUY);
+
+				if (_indicator.lastBollingerBand.deviationRatio <= -0.9 ||
+					(_indicator.lastCandle.low < _indicator.lastBollingerBand.lowband && _indicator.lastCandle.close > _indicator.lastBollingerBand.lowband))
 					Fire (TRIGGER_BUY);
 			}
 		}
@@ -199,13 +221,17 @@ namespace Joi.Brain
 
 		private	void OnLongSellLoop()
 		{
-			if (_indicator.lastOscillator.decreasing) {
-				Fire (TRIGGER_SHORTTERM);
-				return;
-			}
+//			if (_indicator.lastOscillator.decreasing) {
+//				Fire (TRIGGER_SHORTTERM);
+//				return;
+//			}
 
 			if (_enableSell) {
-				if (_indicator.lastBollingerBand.crossingAbove || _indicator.lastBollingerBand.deviationRatio >= 1)
+//				if (_indicator.lastBollingerBand.crossingAbove || _indicator.lastBollingerBand.deviationRatio >= 1)
+//					Fire (TRIGGER_SELL);
+
+				if (_indicator.lastBollingerBand.deviationRatio >= 0.9 || 
+					(_indicator.lastCandle.high > _indicator.lastBollingerBand.highband && _indicator.lastCandle.close < _indicator.lastBollingerBand.highband))
 					Fire (TRIGGER_SELL);
 			}
 		}
@@ -235,13 +261,29 @@ namespace Joi.Brain
 
 		private void OnBuyingLoop()
 		{
-			var past = Utility.Timestamp (DateTime.Now) - _orderbook.timestamp;
+			var now = Utility.Timestamp (DateTime.UtcNow);
+			var past = now - _orderbook.timestamp;
 			if (past > 10)
 				return;
 
 			var price = _orderbook.GetLowestAsk();
-			LogBuy ("LONG", price);
-			Fire (TRIGGER_COMPLETE);
+			var amount = CalculateBuyingAmount (price);
+			if (!simulation) {
+				if (amount > 0)
+					_kr.api.LimitBuy ((long)price, amount, _kr.currency);
+				else {
+					Fire (TRIGGER_ERROR);
+					return;
+				}
+			}
+
+			LogBuy ("LONG", price, amount);
+			Sleep ((int)_interval * 500);
+
+			if (simulation)
+				Fire (TRIGGER_BUY);
+			else
+				Fire (TRIGGER_COMPLETE);
 		}
 
 		private	void OnBuyingExit()
@@ -260,13 +302,29 @@ namespace Joi.Brain
 
 		private	void OnSellingLoop()
 		{
-			var past = Utility.Timestamp (DateTime.Now) - _orderbook.timestamp;
+			var now = Utility.Timestamp (DateTime.UtcNow);
+			var past = now - _orderbook.timestamp;
 			if (past > 10)
 				return;
 
 			var price = _orderbook.GetHighestBid();
-			LogSell ("LONG", price);
-			Fire (TRIGGER_COMPLETE);
+			var amount = CalculateSellingAmount ();
+			if (!simulation) {
+				if (amount > 0)
+					_kr.api.LimitSell ((long)price, amount, _kr.currency);
+				else {
+					Fire (TRIGGER_ERROR);
+					return;
+				}
+			}
+
+			LogSell ("LONG", price, amount);
+			Sleep ((int)_interval * 500);
+
+			if (simulation)
+				Fire (TRIGGER_SELL);
+			else
+				Fire (TRIGGER_COMPLETE);
 		}
 
 		private	void OnSellingExit()
@@ -287,13 +345,14 @@ namespace Joi.Brain
 		}
 		#endregion
 
-		private	void LogBuy(string term, double price)
+		private	void LogBuy(string term, double price, double amount)
 		{
 			_bought = price;
 			var benefit = -(_bought * _kr.buyingFee);
 			_earning += benefit;
 			_earningrate += -_kr.buyingFee;
 			ConsoleIO.LogLine ("{0}-term buy: {1} won ({2})", term, price.ToString ("N"), DateTime.Now.ToString ("T"));
+			ConsoleIO.LogLine ("{0}-term amount: {1}", term, amount);
 			ConsoleIO.LogLine ("{0}-term earning: {1} won (total {2} won)", term, benefit.ToString ("N"), _earning.ToString ("N"));
 			ConsoleIO.LogLine ("{0}-term earning rate: -{1} % (total {2} %)", term, _kr.buyingFee.ToString ("##.000"), _earningrate.ToString ("##.000"));
 			ConsoleIO.LogLine ("bollingerband: high {0}, low {1}, ratio {2}", 
@@ -303,13 +362,14 @@ namespace Joi.Brain
 			);
 		}
 
-		private	void LogSell(string term, double price)
+		private	void LogSell(string term, double price, double amount)
 		{
 			var benefit = CalculateEarning (price);
 			var rate = CalculateEarningRate (price);
 			_earning += benefit;
 			_earningrate += rate;
 			ConsoleIO.LogLine ("{0}-term sell: {1} won ({2})", term, price.ToString ("N"), DateTime.Now.ToString ("T"));
+			ConsoleIO.LogLine ("{0}-term amount: {1}", term, amount);
 			ConsoleIO.LogLine ("{0}-term earning: {1} won (total {2} won)", term, benefit, _earning.ToString("N"));
 			ConsoleIO.LogLine ("{0}-term earning rate: {1} % (total {2} %)", term, rate.ToString("##.000"), _earningrate.ToString ("##.000"));
 			ConsoleIO.LogLine ("bollingerband: high {0}, low {1}, ratio {2}", 
@@ -335,6 +395,22 @@ namespace Joi.Brain
 			var gap = price - _bought;
 			var rate = gap / _bought;
 			return rate - _kr.sellingFee;
+		}
+
+		private	double CalculateSellingAmount()
+		{
+			var btc = _kr.market.balance.GetAvailable (Symbol.BITCOIN);
+			return double.Parse (btc.ToString ("##.0000"));
+		}
+
+		private	double CalculateBuyingAmount(double price)
+		{
+			if (price == 0)
+				return 0;
+
+			var krw = _kr.market.balance.GetAvailable (Symbol.KR_WON);
+			var amount = krw / price;
+			return double.Parse (amount.ToString ("##.0000"));
 		}
     }
 }

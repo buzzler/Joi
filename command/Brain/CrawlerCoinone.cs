@@ -15,6 +15,8 @@ namespace Joi.Brain
 		private bool _gatherTrade;
 		private bool _gatherOrderBook;
 
+		public Api api { get { return _api; } }
+		public string currency { get { return _currency; } }
 		public double buyingFee { get { return _buyFee; } }
 		public double sellingFee { get { return _sellFee; } }
 
@@ -28,6 +30,7 @@ namespace Joi.Brain
 			_gatherOrderBook = false;
 
 			_market.SetIndicator (TimeInterval.MINUTE_30, TimeInterval.DAY_3);
+			_market.SetIndicator (TimeInterval.MINUTE_15, TimeInterval.DAY_3);
 
 			// convert symbol
 			switch (symbol) {
